@@ -96,6 +96,7 @@ main{max-width:1680px;margin:0 auto;padding:24px 32px 60px}
 .result .ph{font-size:12px;color:var(--ink-3)}
 .meta{min-width:0;display:flex;flex-direction:column;gap:8px}
 .name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.idx{display:inline-block;min-width:24px;text-align:center;padding:1px 7px;border-radius:99px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;margin-right:8px;vertical-align:1px}
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border-radius:99px;padding:3px 10px;width:max-content}
 .badge.queued{background:#EEF1EF;color:var(--ink-2)}
 .badge.working{background:var(--blue-soft);color:var(--blue)}
@@ -167,6 +168,7 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
         <span class="inline">
           <select id="classe" disabled><option value="">Carica prima l'elenco studenti</option></select>
           <button type="button" class="btn ghost mini" id="loadListBtn">Carica elenco (xlsx o csv)</button>
+          <button type="button" class="btn ghost mini" id="assignSeqBtn" hidden title="Foto 1 → primo studente della classe, foto 2 → secondo, e così via (ordine dei nomi file)">Assegna in ordine</button>
           <button type="button" class="btn ghost mini" id="clearListBtn" hidden>Rimuovi elenco</button>
           <input type="file" id="listFile" class="sr" accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
         </span>
@@ -823,6 +825,7 @@ function applyElenco(){
     let last=null;try{last=localStorage.getItem(LS_CLASS);}catch(_){}
     if(last!==null&&elenco.classes[last])sel.value=last;}
   for(const it of items)fillStudentSelect(it);
+  updateAssignBtn();
 }
 const currentClass=()=>elenco&&elenco.classes[$('#classe').value]||null;
 function fillStudentSelect(it){
@@ -840,7 +843,10 @@ $('#loadListBtn').addEventListener('click',()=>$('#listFile').click());
 $('#listFile').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   try{await loadListFile(f);}catch(err){$('#listInfo').textContent='Elenco non leggibile: '+errText(err);}});
 $('#clearListBtn').addEventListener('click',()=>{elenco=null;try{localStorage.removeItem(LS_LIST);localStorage.removeItem(LS_CLASS);}catch(_){}applyElenco();});
-$('#classe').addEventListener('change',()=>{try{localStorage.setItem(LS_CLASS,$('#classe').value);}catch(_){}refreshNames();});
+$('#classe').addEventListener('change',()=>{try{localStorage.setItem(LS_CLASS,$('#classe').value);}catch(_){}refreshNames();updateAssignBtn();});
+function updateAssignBtn(){$('#assignSeqBtn').hidden=!(currentClass()&&items.length);}
+$('#assignSeqBtn').addEventListener('click',()=>{const cls=currentClass();if(!cls)return;
+  items.forEach((it,k)=>{it.student=cls.students[k]||null;});refreshNames();});
 try{const saved=localStorage.getItem(LS_LIST);if(saved){elenco=JSON.parse(saved);}}catch(_){elenco=null;}
 applyElenco();
 
@@ -851,7 +857,7 @@ function makeCard(it){
   const el=document.createElement('article');el.className='card';
   el.innerHTML=`<div class="preview"><span class="ph">In attesa</span></div>
     <div class="result"><span class="ph">—</span></div>
-    <div class="meta"><div class="name" title="${it.file.name.replace(/"/g,'&quot;')}">${it.file.name}</div>
+    <div class="meta"><div class="name" title="${it.file.name.replace(/"/g,'&quot;')}"><span class="idx"></span>${it.file.name}</div>
       <span class="badge queued"><i class="dot"></i>In coda</span>
       <label class="student"><span>Studente</span><select class="studentSel"></select></label>
       <div class="swatches"><span>Cornice</span>${FRAMES.map(([v,n])=>`<button type="button" class="sw${v==='none'?' none':''}" data-color="${v}" title="${n}" aria-label="Cornice ${n.toLowerCase()}" style="--sw:${v==='none'?'transparent':v}"></button>`).join('')}</div>
@@ -964,7 +970,7 @@ function updateProgress(){
   els.progText.textContent=tot?(done<tot?`Elaborate ${done} di ${tot}`:`${ok} PNG pronti su ${tot}`):'Nessuna foto caricata';
   const idle=done===tot;
   els.zip.disabled=!(idle&&ok>0);els.redo.disabled=!(idle&&ok>0);els.clear.disabled=!(tot&&idle);els.share.disabled=!(idle&&ok>0);
-  els.empty.style.display=tot?'none':'';els.drop.classList.toggle('compact',tot>0);
+  els.empty.style.display=tot?'none':'';els.drop.classList.toggle('compact',tot>0);updateAssignBtn();
 }
 
 /* ---------------------- input file ---------------------- */
@@ -972,7 +978,15 @@ function addFiles(list){
   const files=[...list].filter(f=>isHeic(f)||/^image\//.test(f.type)||/\.(jpe?g|png|webp|gif|bmp|tiff?)$/i.test(f.name));
   const defFrame=$('#frameColor').value;
   for(const f of files){const it={id:nextId++,file:f,status:'queued',offset:0.5,result:null,frameColor:defFrame};items.push(it);makeCard(it);}
-  updateProgress();pumpDecode();
+  sortItems();updateProgress();pumpDecode();
+}
+/* ordine progressivo come i nomi dell'iPhone (IMG_0009 < IMG_0010): confronto naturale sui nomi file;
+   a parità di nome resta l'ordine di selezione. Le card vengono riordinate nel DOM e la coda segue lo stesso ordine. */
+const natural=new Intl.Collator('it',{numeric:true,sensitivity:'base'});
+function sortItems(){
+  items.sort((a,b)=>natural.compare(a.file.name,b.file.name)||a.id-b.id);
+  els.grid.append(...items.map(i=>i.el));
+  items.forEach((it,k)=>{it.el.querySelector('.idx').textContent=k+1;});
 }
 els.file.addEventListener('change',e=>{addFiles(e.target.files);e.target.value='';});
 els.drop.addEventListener('click',()=>els.file.click());
