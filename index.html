@@ -61,11 +61,12 @@ main{max-width:1680px;margin:0 auto;padding:24px 32px 60px}
 .btn.mini{padding:6px 10px;font-size:12.5px;font-weight:500;white-space:nowrap}
 .settings input[type=color]{flex:none;width:46px;min-width:0;height:36px;padding:2px 4px;cursor:pointer}
 .settings input[type=color]:disabled{opacity:.4;cursor:not-allowed}
-.student{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2)}
-.student select{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;color:var(--ink);font-size:13px}
+/* studente: informazione principale della card → riga intera, corpo pieno; il pulsante di riallineamento sotto */
+.student{display:grid;grid-template-columns:1fr;gap:4px;font-size:12px;color:var(--ink-2)}
+.student select{width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;color:var(--ink);font-size:14.5px}
 .student select:disabled{opacity:.55}
-.student select.set{border-color:var(--accent-mid);font-weight:600}
-.student .cont{flex:none;padding:4px 8px;font-size:12px}
+.student select.set{border-color:var(--accent-mid);font-weight:600;background:var(--accent-soft)}
+.student .cont{justify-self:start;padding:4px 9px;font-size:12px;margin-top:2px}
 .name{display:flex;align-items:center;gap:0}
 .name .fname{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .name .remove{margin-left:auto;flex:none;width:26px;height:26px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--ink-3);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
@@ -100,8 +101,9 @@ dialog p{margin:6px 0;font-size:14px;color:var(--ink-2)}
 .hint{grid-column:1/-1;font-size:12.5px;color:var(--ink-3);margin:-6px 0 0}
 
 /* ---- griglia card ---- */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(470px,1fr));gap:16px;margin-top:20px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:grid;grid-template-columns:200px 150px 1fr;gap:14px;align-items:start}
+/* card larghe almeno 600 px così la colonna delle informazioni (studente, file) ha ≥ 220 px anche con 2-3 colonne su 22" */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(600px,1fr));gap:16px;margin-top:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:grid;grid-template-columns:200px 150px minmax(200px,1fr);gap:14px;align-items:start}
 .card.err{border-color:#E8CE9A}
 .preview{position:relative;width:200px;height:200px;background:#EEF2EF;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .preview canvas{display:block;touch-action:none;cursor:grab}
@@ -111,9 +113,9 @@ dialog p{margin:6px 0;font-size:14px;color:var(--ink-2)}
 .result img{width:150px;height:150px;display:block;image-rendering:auto}
 .result .ph{font-size:12px;color:var(--ink-3)}
 .meta{min-width:0;display:flex;flex-direction:column;gap:8px}
-.name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.name{font-weight:500;font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .idx{display:inline-block;min-width:24px;text-align:center;padding:1px 7px;border-radius:99px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;margin-right:8px;vertical-align:1px}
-.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border-radius:99px;padding:3px 10px;width:max-content}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;border-radius:99px;padding:2px 9px;width:max-content}
 .badge.queued{background:#EEF1EF;color:var(--ink-2)}
 .badge.working{background:var(--blue-soft);color:var(--blue)}
 .badge.done{background:var(--ok-soft);color:var(--ok)}
@@ -122,8 +124,8 @@ dialog p{margin:6px 0;font-size:14px;color:var(--ink-2)}
 .badge .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
 .badge.working .dot{animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
-.details{font-size:13px;color:var(--ink-2);display:grid;grid-template-columns:auto 1fr;gap:2px 10px}
-.details b{font-weight:600;color:var(--ink)}
+.details{font-size:11.5px;color:var(--ink-3);display:grid;grid-template-columns:auto 1fr;gap:1px 10px;line-height:1.4}
+.details b{font-weight:500;color:var(--ink-2);overflow-wrap:anywhere}
 .small{font-size:12px;color:var(--ink-3)}
 .cardbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
 .drop .touch{display:none}
@@ -133,6 +135,7 @@ dialog p{margin:6px 0;font-size:14px;color:var(--ink-2)}
 footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 @media (max-width:1100px){.panel{grid-template-columns:1fr}.settings{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}}
+@media (max-width:700px){.grid{grid-template-columns:1fr}}
 /* ---- smartphone ---- */
 @media (max-width:640px){
   header{padding:14px 16px;gap:12px}
@@ -155,7 +158,6 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
   .preview canvas{max-width:100%;height:auto}
   .result img{width:100%;height:100%;object-fit:contain}
   .cardbtns .btn{flex:1 1 45%;justify-content:center}
-  .name{white-space:normal;word-break:break-all}
 }
 </style>
 </head>
@@ -603,7 +605,8 @@ async function decodeFile(file){
 }
 const IS_MOBILE=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<900);
 const WORK_SHORT=IS_MOBILE||(navigator.deviceMemory&&navigator.deviceMemory<=4)?1000:1200; // memoria contenuta sui telefoni
-const CAN_SHARE=!!(navigator.canShare&&navigator.share&&navigator.canShare({files:[new File([new Uint8Array(8)],'x.png',{type:'image/png'})]}));
+/* foglio di condivisione solo sui telefoni: su Mac/PC (anche Safari, che lo supporterebbe) si scarica sempre nella cartella Download */
+const CAN_SHARE=IS_MOBILE&&!!(navigator.canShare&&navigator.share&&navigator.canShare({files:[new File([new Uint8Array(8)],'x.png',{type:'image/png'})]}));
 function toWorkCanvas(src){
   let w=src.naturalWidth||src.width,h=src.naturalHeight||src.height;
   const short=Math.min(w,h),scale=short>WORK_SHORT?WORK_SHORT/short:1;
@@ -1018,7 +1021,7 @@ async function encodeItem(it){
     it.status='done';
     it.q.result.innerHTML=`<img alt="Anteprima PNG finale" src="${it.result.url}">`;
     setStatus(it,res.over?'warn':'done',res.over?'Sopra il limite anche al minimo':'Pronto');
-    const rows=[['Scatto',it.exifTime?fmtTime(it.exifTime):'non nei metadati (ordine per nome)'],['Dimensioni',`${res.side} × ${res.side} px`],['Colore',res.bits===24?'24 bit':'8 bit (palette 256)'],['Peso',fmtKB(res.bytes.length)],['Risoluzione','72 dpi']];
+    const rows=[['Scatto',it.exifTime?fmtTime(it.exifTime):'non nei metadati (ordine per nome)'],['Immagine',`${res.side} × ${res.side} px · ${res.bits===24?'24 bit':'8 bit'} · ${fmtKB(res.bytes.length)} · 72 dpi`]];
     if(bgOn)rows.push(['Sfondo',it.mask?'uniforme':'non sostituito ('+it.segError+')']);
     if(c.filter!=='none')rows.push(['Filtro',$('#filter').selectedOptions[0].textContent]);
     rows.push(['File',outName(it)]);setDetails(it,rows);
