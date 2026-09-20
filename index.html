@@ -65,6 +65,22 @@ main{max-width:1680px;margin:0 auto;padding:24px 32px 60px}
 .student select{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;color:var(--ink);font-size:13px}
 .student select:disabled{opacity:.55}
 .student select.set{border-color:var(--accent-mid);font-weight:600}
+.student .cont{flex:none;padding:4px 8px;font-size:12px}
+.name{display:flex;align-items:center;gap:0}
+.name .fname{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name .remove{margin-left:auto;flex:none;width:26px;height:26px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--ink-3);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.name .remove svg{width:13px;height:13px}
+.name .remove:hover{color:var(--amber);border-color:var(--amber)}
+dialog{border:none;border-radius:var(--r);box-shadow:0 20px 60px rgba(20,40,30,.25);padding:22px 24px;max-width:560px;width:calc(100% - 32px);color:var(--ink)}
+dialog::backdrop{background:rgba(20,40,30,.45)}
+dialog h2{margin:0 0 6px;font-size:18px}
+dialog p{margin:6px 0;font-size:14px;color:var(--ink-2)}
+.okmsg{color:var(--ok);font-weight:600}.warnmsg{color:var(--amber);font-weight:600}
+.absentList{max-height:50vh;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:10px 0;display:grid;grid-template-columns:1fr 1fr;gap:2px 14px}
+.absentList label{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:4px 0;cursor:pointer}
+.absentList input{width:16px;height:16px;accent-color:var(--accent)}
+.dlgbtns{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+@media (max-width:640px){.absentList{grid-template-columns:1fr}}
 .swatches{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2)}
 .swatches span{margin-right:2px}
 .sw{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0;background:var(--sw)}
@@ -292,6 +308,10 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M4 12h10M4 18h10"/><path d="M17 8l3 3-3 3"/></svg>
         Assegna studenti in ordine
       </button>
+      <button class="btn" id="pdfBtn" disabled title="Galleria della classe su A3 orizzontale: foto in ordine alfabetico con il nome sotto e avviso di divieto di fotografare">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg>
+        Crea PDF galleria (A3)
+      </button>
       <button class="btn" id="zipBtn" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 19h16"/></svg>
         Scarica tutte (ZIP)
@@ -310,6 +330,15 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
     <p class="hint">Trascina l'anteprima a sinistra di ogni foto per spostare il ritaglio quadrato. L'anteprima a destra è il PNG finale. Le impostazioni del pannello si applicano subito a tutte le foto caricate; "Cornice predefinita" e "Ritaglio iniziale" valgono per le foto nuove. Lo sfondo uniforme usa un modello di riconoscimento del soggetto scaricato alla prima attivazione.</p>
   </section>
 
+  <dialog id="absentDlg">
+    <form method="dialog">
+      <h2>Assegna studenti in ordine</h2>
+      <p>Spunta gli <b>assenti</b>: verranno saltati, così foto e nomi restano allineati. Poi controlla le card e correggi le eccezioni.</p>
+      <p id="absentSummary"></p>
+      <div id="absentList" class="absentList"></div>
+      <div class="dlgbtns"><button type="button" class="btn ghost" id="absentCancel">Annulla</button><button type="button" class="btn" id="absentOk">Assegna</button></div>
+    </form>
+  </dialog>
   <section class="grid" id="grid"></section>
   <p class="empty" id="empty">Le foto elaborate compariranno qui.</p>
 </main>
@@ -838,9 +867,11 @@ function fillStudentSelect(it){
   const taken=new Set(items.filter(o=>o!==it&&o.student).map(o=>o.student));
   s.disabled=false;s.innerHTML='<option value="">Non assegnato</option>'+cls.students.map(n=>`<option value="${n.replace(/"/g,'&quot;')}"${n===it.student?' selected':''}>${n}${taken.has(n)?' (già assegnato)':''}</option>`).join('');
   s.classList.toggle('set',!!it.student);
+  if(it.q.cont)it.q.cont.hidden=!(it.student&&items.indexOf(it)<items.length-1);
 }
 function refreshNames(){ // aggiorna etichette "(già assegnato)" e nome file su tutte le card
   for(const it of items){fillStudentSelect(it);const rows=it.q.details.querySelectorAll('b');const last=rows[rows.length-1];if(it.status==='done'&&last)last.textContent=outName(it);}
+  updatePdfBtn();
 }
 $('#loadListBtn').addEventListener('click',()=>$('#listFile').click());
 $('#listFile').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
@@ -849,8 +880,34 @@ $('#clearListBtn').addEventListener('click',()=>{elenco=null;try{localStorage.re
 $('#classe').addEventListener('change',()=>{try{localStorage.setItem(LS_CLASS,$('#classe').value);}catch(_){}refreshNames();updateAssignBtn();});
 function updateAssignBtn(){const b=$('#assignSeqBtn'),cls=currentClass();b.disabled=!(cls&&items.length);
   b.title=cls?`Foto 1 → ${cls.students[0]}, foto 2 → ${cls.students[1]||'…'}, e così via, nell'ordine di scatto`:'Carica l\'elenco e scegli la classe per abilitare';}
-$('#assignSeqBtn').addEventListener('click',()=>{const cls=currentClass();if(!cls)return;
-  items.forEach((it,k)=>{it.student=cls.students[k]||null;});refreshNames();});
+/* Assegnazione in sequenza con controllo degli assenti: prima di abbinare si spuntano gli studenti assenti,
+   così foto e nomi restano allineati anche se gli elenchi non combaciano. */
+$('#assignSeqBtn').addEventListener('click',()=>{const cls=currentClass();if(!cls)return;openAbsentDialog(cls);});
+function openAbsentDialog(cls){
+  const dlg=$('#absentDlg'),list=$('#absentList');
+  list.innerHTML=cls.students.map((n,i)=>`<label><input type="checkbox" value="${i}"> <span>${i+1}. ${n}</span></label>`).join('');
+  const upd=()=>{const abs=list.querySelectorAll('input:checked').length,present=cls.students.length-abs,ph=items.length;
+    $('#absentSummary').innerHTML=`<b>${ph}</b> foto · <b>${present}</b> studenti presenti su ${cls.students.length}`+
+      (ph===present?' · <span class="okmsg">i numeri combaciano</span>':` · <span class="warnmsg">${ph>present?'ci sono più foto che studenti: le ultime resteranno senza nome':'ci sono meno foto che studenti: gli ultimi resteranno senza foto'}</span>`);};
+  list.onchange=upd;upd();
+  $('#absentOk').onclick=()=>{const absent=new Set([...list.querySelectorAll('input:checked')].map(i=>cls.students[+i.value]));
+    const present=cls.students.filter(n=>!absent.has(n));items.forEach((it,k)=>{it.student=present[k]||null;});refreshNames();dlg.close();};
+  dlg.showModal();
+}
+/* "Continua in ordine da qui": dopo aver corretto lo studente su una card, riallinea le card successive
+   con gli studenti che seguono nell'elenco (saltando quelli già assegnati a card precedenti). */
+function continueFrom(it){
+  const cls=currentClass();if(!cls||!it.student)return;
+  const k=items.indexOf(it);const before=new Set(items.slice(0,k).map(o=>o.student).filter(Boolean));
+  let idx=cls.students.indexOf(it.student)+1;
+  for(let j=k+1;j<items.length;j++){while(idx<cls.students.length&&before.has(cls.students[idx]))idx++;items[j].student=cls.students[idx++]||null;}
+  refreshNames();
+}
+$('#absentCancel').addEventListener('click',()=>$('#absentDlg').close());
+function removeItem(it){
+  const k=items.indexOf(it);if(k<0)return;if(it.result)URL.revokeObjectURL(it.result.url);items.splice(k,1);it.el.remove();
+  items.forEach((o,i)=>{o.el.querySelector('.idx').textContent=i+1;});updateProgress();refreshNames();
+}
 try{const saved=localStorage.getItem(LS_LIST);if(saved){elenco=JSON.parse(saved);}}catch(_){elenco=null;}
 applyElenco();
 
@@ -861,9 +918,9 @@ function makeCard(it){
   const el=document.createElement('article');el.className='card';
   el.innerHTML=`<div class="preview"><span class="ph">In attesa</span></div>
     <div class="result"><span class="ph">—</span></div>
-    <div class="meta"><div class="name" title="${it.file.name.replace(/"/g,'&quot;')}"><span class="idx"></span>${it.file.name}</div>
+    <div class="meta"><div class="name" title="${it.file.name.replace(/"/g,'&quot;')}"><span class="idx"></span><span class="fname">${it.file.name}</span><button type="button" class="remove" title="Rimuovi questa foto dall'elenco" aria-label="Rimuovi foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <span class="badge queued"><i class="dot"></i>In coda</span>
-      <label class="student"><span>Studente</span><select class="studentSel"></select></label>
+      <label class="student"><span>Studente</span><select class="studentSel"></select><button type="button" class="btn ghost mini cont" title="Riallinea le foto successive con gli studenti che seguono questo nell'elenco" hidden>Continua in ordine da qui</button></label>
       <div class="swatches"><span>Cornice</span>${FRAMES.map(([v,n])=>`<button type="button" class="sw${v==='none'?' none':''}" data-color="${v}" title="${n}" aria-label="Cornice ${n.toLowerCase()}" style="--sw:${v==='none'?'transparent':v}"></button>`).join('')}</div>
       <div class="details"></div>
       <div class="cardbtns">
@@ -874,8 +931,10 @@ function makeCard(it){
   it.el=el;it.q={preview:el.querySelector('.preview'),result:el.querySelector('.result'),badge:el.querySelector('.badge'),details:el.querySelector('.details'),btn:el.querySelector('.btn.dl'),share:el.querySelector('.btn.share')};
   it.q.btn.addEventListener('click',()=>{if(!it.result)return;const a=document.createElement('a');a.href=it.result.url;a.download=outName(it);a.click();});
   it.q.share.addEventListener('click',()=>{if(it.result)shareFiles([it]);});
-  it.q.student=el.querySelector('.studentSel');
+  it.q.student=el.querySelector('.studentSel');it.q.cont=el.querySelector('.cont');
   it.q.student.addEventListener('change',()=>{it.student=it.q.student.value||null;refreshNames();});
+  it.q.cont.addEventListener('click',()=>continueFrom(it));
+  el.querySelector('.remove').addEventListener('click',()=>removeItem(it));
   fillStudentSelect(it);
   el.querySelector('.swatches').addEventListener('click',e=>{const b=e.target.closest('.sw');if(!b)return;setFrame(it,b.dataset.color);if(it.work)scheduleEncode(it);});
   paintSwatches(it);
@@ -974,7 +1033,7 @@ function updateProgress(){
   els.progText.textContent=tot?(done<tot?`Elaborate ${done} di ${tot}`:`${ok} PNG pronti su ${tot}`):'Nessuna foto caricata';
   const idle=done===tot;
   els.zip.disabled=!(idle&&ok>0);els.redo.disabled=!(idle&&ok>0);els.clear.disabled=!(tot&&idle);els.share.disabled=!(idle&&ok>0);
-  els.empty.style.display=tot?'none':'';els.drop.classList.toggle('compact',tot>0);updateAssignBtn();
+  els.empty.style.display=tot?'none':'';els.drop.classList.toggle('compact',tot>0);updateAssignBtn();updatePdfBtn();
 }
 
 /* ---------------------- input file ---------------------- */
@@ -1039,6 +1098,73 @@ let autoTimer=null;
 $('#bgMode').addEventListener('change',()=>{$('#bgCustom').disabled=$('#bgMode').value!=='custom';});
 $('#frameAll').addEventListener('click',()=>{const color=$('#frameColor').value;for(const it of items){if(it.frameColor===color)continue;setFrame(it,color);if(it.work)encodeItem(it);}});
 els.clear.addEventListener('click',()=>{for(const it of items){if(it.result)URL.revokeObjectURL(it.result.url);}items.length=0;els.grid.innerHTML='';updateProgress();});
+
+/* ---------------------- PDF galleria di classe (A3 orizzontale, jsPDF caricato lazy) ----------------------
+   Foto degli studenti della classe scelta (solo quelle assegnate), ordine alfabetico, nome sotto la foto,
+   intestazione campus e fascia di divieto ripresa dal cartello "Vietato fotografare e filmare". */
+let jspdfP=null;
+function loadJsPDF(){if(!jspdfP)jspdfP=loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js').then(()=>window.jspdf.jsPDF);return jspdfP;}
+async function resultJpeg(it,px){const im=await createImageBitmap(it.result.blob);const c=document.createElement('canvas');c.width=c.height=px;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,px,px);x.imageSmoothingQuality='high';x.drawImage(im,0,0,px,px);im.close&&im.close();return c.toDataURL('image/jpeg',0.88);}
+function schoolYear(d=new Date()){const y=d.getMonth()>=8?d.getFullYear():d.getFullYear()-1;return `${y}/${String(y+1).slice(2)}`;}
+function drawNoPhoto(pdf,cx,cy,r){ // pittogramma del cartello: cerchio rosso barrato con fotocamera
+  pdf.setDrawColor(196,59,51);pdf.setLineWidth(r*0.22);pdf.circle(cx,cy,r,'S');
+  pdf.setFillColor(196,59,51);pdf.roundedRect(cx-r*0.55,cy-r*0.3,r*1.1,r*0.7,r*0.1,r*0.1,'F');pdf.rect(cx-r*0.22,cy-r*0.44,r*0.44,r*0.16,'F');
+  pdf.setFillColor(255,255,255);pdf.circle(cx,cy+r*0.05,r*0.2,'F');
+  pdf.setDrawColor(196,59,51);pdf.setLineWidth(r*0.22);pdf.line(cx-r*0.7,cy-r*0.7,cx+r*0.7,cy+r*0.7);
+}
+async function buildGalleryPdf(){
+  const cls=currentClass();if(!cls)return null;
+  const byName=new Map();for(const it of items)if(it.student&&it.status==='done'&&it.result&&!byName.has(it.student))byName.set(it.student,it);
+  const entries=cls.students.filter(n=>byName.has(n)).map(n=>({name:n,it:byName.get(n)})).sort((a,b)=>natural.compare(a.name,b.name));
+  const missing=cls.students.filter(n=>!byName.has(n));
+  if(!entries.length)throw new Error('nessuna foto assegnata a uno studente di questa classe');
+  const jsPDF=await loadJsPDF();
+  const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a3'});
+  /* Geometria fissa (A3 orizzontale 420×297 mm), uguale per tutte le classi, un solo foglio:
+       margini 10 · intestazione 22 · spazio 6 · griglia · spazio 6 · fascia divieto 20 · margine 10
+       area griglia 400×233 mm · 7 colonne × 4 righe (classe massima 28) · gap 4 mm · riga nome 8 mm
+       lato foto = (233 − 3·4)/4 − 8 = 47,25 → 47 mm (vincolo in altezza; in larghezza sarebbero 53,7)
+       blocco 7·47+6·4 = 353 mm × 4·55+3·4 = 232 mm, centrato. Oltre 28 studenti: griglia ricalcolata, sempre un foglio. */
+  const W=420,H=297,M=10,headH=22,footH=20,gapV=6,RED=[196,59,51],GREY=[109,110,113],INK=[29,42,36];
+  const gap=4,nameH=8,areaW=W-2*M,areaH=H-headH-footH-M-2*gapV,n=entries.length;
+  let cols=7,rows=4,s=47;
+  if(n>28){for(cols=8;cols<=14;cols++){rows=Math.ceil(n/cols);s=Math.floor(Math.min((areaW-gap*(cols-1))/cols,(areaH-gap*(rows-1))/rows-nameH));if(rows<=4||cols>=14)break;}}
+  const usedRows=Math.ceil(n/cols),gridW=cols*s+gap*(cols-1),gridH=usedRows*(s+nameH)+gap*(usedRows-1);
+  const x0=(W-gridW)/2,y0=headH+gapV+(areaH-gridH)/2;
+  // intestazione rossa come il cartello
+  pdf.setFillColor(...RED);pdf.rect(0,0,W,headH,'F');
+  pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');pdf.setFontSize(24);pdf.text('campus',M,13.5);
+  pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.text('sacrafamiglia.education',M,18.5);
+  pdf.setFont('helvetica','bold');pdf.setFontSize(19);pdf.text(`Classe ${cls.label}`,W/2,12.5,{align:'center'});
+  pdf.setFont('helvetica','normal');pdf.setFontSize(10.5);pdf.text(`Scuola Sacra Famiglia · Orzinuovi (BS) · a.s. ${schoolYear()}`,W/2,18.5,{align:'center'});
+  pdf.setFontSize(9);pdf.text(`${n} student${n===1?'e':'i'} · foto ${s}×${s} mm`,W-M,18.5,{align:'right'});
+  for(let i=0;i<n;i++){const e=entries[i],c=i%cols,r=Math.floor(i/cols),x=x0+c*(s+gap),y=y0+r*(s+nameH+gap);
+    pdf.addImage(await resultJpeg(e.it,Math.min(900,Math.round(s*12))),'JPEG',x,y,s,s);
+    pdf.setDrawColor(217,226,220);pdf.setLineWidth(0.3);pdf.rect(x,y,s,s);
+    pdf.setTextColor(...INK);pdf.setFont('helvetica','bold');pdf.setFontSize(s>=44?10.5:9);
+    pdf.text(pdf.splitTextToSize(e.name,s)[0],x+s/2,y+s+5.4,{align:'center'});}
+  // fascia di divieto (dal cartello "Vietato fotografare e filmare")
+  const fy=H-M-footH;
+  pdf.setFillColor(243,244,246);pdf.rect(M,fy,W-2*M,footH,'F');pdf.setFillColor(...RED);pdf.rect(M,fy,2,footH,'F');
+  drawNoPhoto(pdf,M+13,fy+footH/2,6.8);
+  pdf.setTextColor(...RED);pdf.setFont('helvetica','bold');pdf.setFontSize(12.5);pdf.text('Vietato fotografare e filmare questa bacheca',M+24,fy+7);
+  pdf.setTextColor(...INK);pdf.setFont('helvetica','normal');pdf.setFontSize(9);
+  pdf.text('Il volto di ogni bambino appartiene a lui e alla sua famiglia. Questa galleria è esposta nei locali della scuola ed è protetta: non fotografarla, non filmarla e non condividerla con alcun dispositivo.',M+24,fy+12,{maxWidth:W-2*M-30});
+  pdf.setTextColor(...GREY);pdf.setFontSize(7.5);pdf.text(`Nel rispetto del Regolamento d'Istituto e del Regolamento UE 2016/679 sulla protezione dei dati personali. Generato il ${new Date().toLocaleDateString('it-IT')}.`,M+24,fy+17.5);
+  return {blob:pdf.output('blob'),count:n,missing,pages:1,side:s};
+}
+function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),10000);}
+function updatePdfBtn(){$('#pdfBtn').disabled=!(currentClass()&&items.some(it=>it.student&&it.status==='done'));}
+$('#pdfBtn').addEventListener('click',async()=>{
+  const b=$('#pdfBtn');b.disabled=true;els.progText.textContent='Creo il PDF della galleria…';
+  try{const r=await buildGalleryPdf();const name=`galleria-${slugName(currentClass().label)}.pdf`;
+    const file=new File([r.blob],name,{type:'application/pdf'});let shared=false;
+    if(CAN_SHARE&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});shared=true;}catch(e){if(e&&e.name==='AbortError')shared=true;}}
+    if(!shared)downloadBlob(r.blob,name);
+    els.progText.textContent=`PDF creato: ${r.count} foto da ${r.side}×${r.side} mm su un foglio A3`+(r.missing.length?` · senza foto: ${r.missing.join(', ')}`:'');
+  }catch(e){els.progText.textContent='PDF non creato: '+errText(e);}
+  finally{updatePdfBtn();}
+});
 
 /* ---------------------- ZIP (metodo store) ---------------------- */
 async function buildZip(entries){
