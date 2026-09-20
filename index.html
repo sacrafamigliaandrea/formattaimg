@@ -168,7 +168,6 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
         <span class="inline">
           <select id="classe" disabled><option value="">Carica prima l'elenco studenti</option></select>
           <button type="button" class="btn ghost mini" id="loadListBtn">Carica elenco (xlsx o csv)</button>
-          <button type="button" class="btn ghost mini" id="assignSeqBtn" hidden title="Foto 1 → primo studente della classe, foto 2 → secondo, e così via (ordine dei nomi file)">Assegna in ordine</button>
           <button type="button" class="btn ghost mini" id="clearListBtn" hidden>Rimuovi elenco</button>
           <input type="file" id="listFile" class="sr" accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
         </span>
@@ -289,6 +288,10 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
     </div>
 
     <div class="actions">
+      <button class="btn" id="assignSeqBtn" disabled title="Foto 1 → primo studente della classe, foto 2 → secondo, e così via, seguendo l'ordine di scatto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M4 12h10M4 18h10"/><path d="M17 8l3 3-3 3"/></svg>
+        Assegna studenti in ordine
+      </button>
       <button class="btn" id="zipBtn" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 19h16"/></svg>
         Scarica tutte (ZIP)
@@ -844,7 +847,8 @@ $('#listFile').addEventListener('change',async e=>{const f=e.target.files[0];e.t
   try{await loadListFile(f);}catch(err){$('#listInfo').textContent='Elenco non leggibile: '+errText(err);}});
 $('#clearListBtn').addEventListener('click',()=>{elenco=null;try{localStorage.removeItem(LS_LIST);localStorage.removeItem(LS_CLASS);}catch(_){}applyElenco();});
 $('#classe').addEventListener('change',()=>{try{localStorage.setItem(LS_CLASS,$('#classe').value);}catch(_){}refreshNames();updateAssignBtn();});
-function updateAssignBtn(){$('#assignSeqBtn').hidden=!(currentClass()&&items.length);}
+function updateAssignBtn(){const b=$('#assignSeqBtn'),cls=currentClass();b.disabled=!(cls&&items.length);
+  b.title=cls?`Foto 1 → ${cls.students[0]}, foto 2 → ${cls.students[1]||'…'}, e così via, nell'ordine di scatto`:'Carica l\'elenco e scegli la classe per abilitare';}
 $('#assignSeqBtn').addEventListener('click',()=>{const cls=currentClass();if(!cls)return;
   items.forEach((it,k)=>{it.student=cls.students[k]||null;});refreshNames();});
 try{const saved=localStorage.getItem(LS_LIST);if(saved){elenco=JSON.parse(saved);}}catch(_){elenco=null;}
@@ -955,7 +959,7 @@ async function encodeItem(it){
     it.status='done';
     it.q.result.innerHTML=`<img alt="Anteprima PNG finale" src="${it.result.url}">`;
     setStatus(it,res.over?'warn':'done',res.over?'Sopra il limite anche al minimo':'Pronto');
-    const rows=[['Dimensioni',`${res.side} × ${res.side} px`],['Colore',res.bits===24?'24 bit':'8 bit (palette 256)'],['Peso',fmtKB(res.bytes.length)],['Risoluzione','72 dpi']];
+    const rows=[['Scatto',it.exifTime?fmtTime(it.exifTime):'non nei metadati (ordine per nome)'],['Dimensioni',`${res.side} × ${res.side} px`],['Colore',res.bits===24?'24 bit':'8 bit (palette 256)'],['Peso',fmtKB(res.bytes.length)],['Risoluzione','72 dpi']];
     if(bgOn)rows.push(['Sfondo',it.mask?'uniforme':'non sostituito ('+it.segError+')']);
     if(c.filter!=='none')rows.push(['Filtro',$('#filter').selectedOptions[0].textContent]);
     rows.push(['File',outName(it)]);setDetails(it,rows);
@@ -974,20 +978,50 @@ function updateProgress(){
 }
 
 /* ---------------------- input file ---------------------- */
-function addFiles(list){
+async function addFiles(list){
   const files=[...list].filter(f=>isHeic(f)||/^image\//.test(f.type)||/\.(jpe?g|png|webp|gif|bmp|tiff?)$/i.test(f.name));
-  const defFrame=$('#frameColor').value;
-  for(const f of files){const it={id:nextId++,file:f,status:'queued',offset:0.5,result:null,frameColor:defFrame};items.push(it);makeCard(it);}
-  sortItems();updateProgress();pumpDecode();
+  const defFrame=$('#frameColor').value,created=[];
+  for(const f of files){const it={id:nextId++,file:f,status:'queued',offset:0.5,result:null,frameColor:defFrame,time:0,exifTime:null};items.push(it);makeCard(it);created.push(it);}
+  updateProgress();
+  // ordine di scatto: EXIF DateTimeOriginal (letto dai primi byte del file), poi nome, poi data del file
+  await Promise.all(created.map(async it=>{it.exifTime=await captureTime(it.file);it.time=it.exifTime||it.file.lastModified||0;}));
+  sortItems();pumpDecode();
 }
-/* ordine progressivo come i nomi dell'iPhone (IMG_0009 < IMG_0010): confronto naturale sui nomi file;
-   a parità di nome resta l'ordine di selezione. Le card vengono riordinate nel DOM e la coda segue lo stesso ordine. */
+/* Ordine progressivo delle foto. Safari su iPhone può consegnare le foto della libreria con nomi generici
+   uguali ("image.jpeg"), quindi il nome non basta: 1) ora di scatto EXIF, 2) nome file con confronto
+   numerico naturale (IMG_0009 < IMG_0010), 3) ordine di selezione. Le card vengono riordinate nel DOM
+   e la coda di elaborazione segue lo stesso ordine. */
 const natural=new Intl.Collator('it',{numeric:true,sensitivity:'base'});
 function sortItems(){
-  items.sort((a,b)=>natural.compare(a.file.name,b.file.name)||a.id-b.id);
+  items.sort((a,b)=>(a.time-b.time)||natural.compare(a.file.name,b.file.name)||a.id-b.id);
   els.grid.append(...items.map(i=>i.el));
   items.forEach((it,k)=>{it.el.querySelector('.idx').textContent=k+1;});
 }
+/* EXIF DateTimeOriginal (0x9003) senza librerie: cerca l'intestazione "Exif\0\0" nel primo MB (JPEG APP1 e
+   item Exif degli HEIC Apple), poi legge la TIFF: IFD0 → ExifIFD (0x8769) → 0x9003; riserva DateTime (0x0132). */
+async function captureTime(file){
+  try{
+    const buf=await file.slice(0,Math.min(file.size,1<<20)).arrayBuffer(),u8=new Uint8Array(buf),dv=new DataView(buf);
+    // "Exif\0\0" può comparire anche nella tabella degli item (infe) degli HEIC: si accetta solo se seguito
+    // da una vera intestazione TIFF ("II*\0" o "MM\0*")
+    let p=-1;
+    for(let i=0;i<u8.length-14;i++){
+      if(u8[i]===0x45&&u8[i+1]===0x78&&u8[i+2]===0x69&&u8[i+3]===0x66&&u8[i+4]===0&&u8[i+5]===0){
+        const q=i+6,b0=u8[q],b1=u8[q+1],b2=u8[q+2],b3=u8[q+3];
+        if((b0===0x49&&b1===0x49&&b2===0x2A&&b3===0)||(b0===0x4D&&b1===0x4D&&b2===0&&b3===0x2A)){p=q;break;}
+      }
+    }
+    if(p<0)return null;
+    const le=dv.getUint16(p)===0x4949,r16=o=>dv.getUint16(p+o,le),r32=o=>dv.getUint32(p+o,le);
+    if(r16(2)!==42)return null;
+    const find=(ifd,tag)=>{if(ifd<=0||p+ifd+2>u8.length)return -1;const n=r16(ifd);for(let i=0;i<n;i++){const e=ifd+2+i*12;if(p+e+12>u8.length)return -1;if(r16(e)===tag)return e;}return -1;};
+    const ifd0=r32(4);let e=-1;const ex=find(ifd0,0x8769);if(ex>=0)e=find(r32(ex+8),0x9003);if(e<0)e=find(ifd0,0x0132);if(e<0)return null;
+    const cnt=r32(e+4),off=cnt>4?r32(e+8):e+8,s=new TextDecoder().decode(u8.subarray(p+off,p+off+Math.min(cnt,20)));
+    const m=s.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);if(!m)return null;
+    const t=new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6]).getTime();return isNaN(t)?null:t;
+  }catch(_){return null;}
+}
+const fmtTime=t=>new Date(t).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
 els.file.addEventListener('change',e=>{addFiles(e.target.files);e.target.value='';});
 els.drop.addEventListener('click',()=>els.file.click());
 els.drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();els.file.click();}});
