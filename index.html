@@ -191,6 +191,13 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
         </span>
         <span class="small" id="listInfo">Nessun elenco caricato: i file useranno il nome originale.</span>
       </label>
+      <label class="full">Lavori salvati su questo dispositivo <span class="small" id="saveInfo">Il lavoro della classe scelta si salva da solo a ogni modifica.</span>
+        <span class="inline">
+          <select id="works"><option value="">Nessun lavoro salvato</option></select>
+          <button type="button" class="btn ghost mini" id="resumeBtn" disabled>Riprendi</button>
+          <button type="button" class="btn ghost mini" id="deleteWorkBtn" disabled>Elimina</button>
+        </span>
+      </label>
       <label>Peso massimo (KB)
         <input type="number" id="limitKB" min="30" max="5000" step="10" value="200">
       </label>
@@ -874,7 +881,7 @@ function fillStudentSelect(it){
 }
 function refreshNames(){ // aggiorna etichette "(già assegnato)" e nome file su tutte le card
   for(const it of items){fillStudentSelect(it);const rows=it.q.details.querySelectorAll('b');const last=rows[rows.length-1];if(it.status==='done'&&last)last.textContent=outName(it);}
-  updatePdfBtn();
+  updatePdfBtn();if(items.length)scheduleSave();
 }
 $('#loadListBtn').addEventListener('click',()=>$('#listFile').click());
 $('#listFile').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
@@ -979,7 +986,8 @@ async function pumpDecode(){
   while(decoding<DECODE_CONC){const it=items.find(i=>i.status==='queued');if(!it)return;decoding++;
     (async()=>{try{it.status='decoding';setStatus(it,'working','Decodifica');
         const bmp=await decodeFile(it.file);it.work=toWorkCanvas(bmp);
-        it.offset=cfg().cropDefault;buildPreview(it);await encodeItem(it);
+        if(it.offset==null)it.offset=cfg().cropDefault; // i lavori ripresi conservano il ritaglio scelto
+        buildPreview(it);await encodeItem(it);
       }catch(err){it.status='error';setStatus(it,'error','Errore');it.q.details.innerHTML=`<div class="errmsg" style="grid-column:1/-1">${err.message||err}</div>`;}
       finally{decoding--;updateProgress();pumpDecode();}})();
   }
@@ -1025,7 +1033,7 @@ async function encodeItem(it){
     if(bgOn)rows.push(['Sfondo',it.mask?'uniforme':'non sostituito ('+it.segError+')']);
     if(c.filter!=='none')rows.push(['Filtro',$('#filter').selectedOptions[0].textContent]);
     rows.push(['File',outName(it)]);setDetails(it,rows);
-    it.q.btn.disabled=false;it.q.share.disabled=false;
+    it.q.btn.disabled=false;it.q.share.disabled=false;scheduleSave();
   }catch(err){it.status='error';setStatus(it,'error','Errore');it.q.details.innerHTML=`<div class="errmsg" style="grid-column:1/-1">${err.message||err}</div>`;}
   updateProgress();
   if(it.dirty){it.dirty=false;encodeItem(it);}
@@ -1043,7 +1051,7 @@ function updateProgress(){
 async function addFiles(list){
   const files=[...list].filter(f=>isHeic(f)||/^image\//.test(f.type)||/\.(jpe?g|png|webp|gif|bmp|tiff?)$/i.test(f.name));
   const defFrame=$('#frameColor').value,created=[];
-  for(const f of files){const it={id:nextId++,file:f,status:'queued',offset:0.5,result:null,frameColor:defFrame,time:0,exifTime:null};items.push(it);makeCard(it);created.push(it);}
+  for(const f of files){const it={id:nextId++,file:f,status:'queued',offset:null,result:null,frameColor:defFrame,time:0,exifTime:null};items.push(it);makeCard(it);created.push(it);}
   updateProgress();
   // ordine di scatto: EXIF DateTimeOriginal (letto dai primi byte del file), poi nome, poi data del file
   await Promise.all(created.map(async it=>{it.exifTime=await captureTime(it.file);it.time=it.exifTime||it.file.lastModified||0;}));
@@ -1100,7 +1108,73 @@ let autoTimer=null;
   $(id).addEventListener('change',()=>{clearTimeout(autoTimer);autoTimer=setTimeout(reencodeAll,250);}));
 $('#bgMode').addEventListener('change',()=>{$('#bgCustom').disabled=$('#bgMode').value!=='custom';});
 $('#frameAll').addEventListener('click',()=>{const color=$('#frameColor').value;for(const it of items){if(it.frameColor===color)continue;setFrame(it,color);if(it.work)encodeItem(it);}});
-els.clear.addEventListener('click',()=>{for(const it of items){if(it.result)URL.revokeObjectURL(it.result.url);}items.length=0;els.grid.innerHTML='';updateProgress();});
+function clearAll(){for(const it of items){if(it.result)URL.revokeObjectURL(it.result.url);}items.length=0;els.grid.innerHTML='';updateProgress();}
+els.clear.addEventListener('click',clearAll);
+
+/* ---------------------- lavori salvati per classe (IndexedDB, solo su questo dispositivo) ----------------------
+   Si salvano: foto originali (una volta sola), studente/cornice/ritaglio di ogni foto, impostazioni del pannello.
+   I PNG non vengono salvati: alla ripresa la pipeline li rigenera identici. Salvataggio automatico (debounce 1,5 s)
+   sotto la classe selezionata; "Riprendi" ricarica tutto e rielabora. Nulla lascia il dispositivo. */
+const DB_NAME='fotoRegistro';let dbP=null;
+function openDb(){
+  if(!dbP)dbP=new Promise((res,rej)=>{if(!window.indexedDB)return rej(new Error('IndexedDB non disponibile'));
+    const r=indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('lavori'))d.createObjectStore('lavori');if(!d.objectStoreNames.contains('originali'))d.createObjectStore('originali');};
+    r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
+  return dbP;
+}
+function tx(db,store,mode,fn){return new Promise((res,rej)=>{const t=db.transaction(store,mode),req=fn(t.objectStore(store));t.oncomplete=()=>res(req&&'result' in req?req.result:undefined);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error||new Error('transazione annullata'));});}
+const fileKey=f=>`${f.name}|${f.lastModified}|${f.size}`;
+const SETTING_IDS=['#limitKB','#maxSide','#badgeStyle','#badgePos','#badgeSize','#frameColor','#frameWidth','#cropDefault','#filter','#bgMode','#bgCustom'];
+const currentSettings=()=>Object.fromEntries(SETTING_IDS.map(id=>[id,$(id).value]));
+function applySettings(s){for(const id of SETTING_IDS)if(s&&s[id]!=null)$(id).value=s[id];$('#bgCustom').disabled=$('#bgMode').value!=='custom';}
+let saveTimer=null;
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveWork,1500);}
+async function saveWork(){
+  const cls=currentClass();if(!cls||!items.length)return;
+  try{
+    const db=await openDb(),prefix=cls.label+'|';
+    const keys=await tx(db,'originali','readonly',s=>s.getAllKeys()),have=new Set(keys);
+    await tx(db,'originali','readwrite',s=>{for(const it of items){const k=prefix+fileKey(it.file);if(!have.has(k))s.put({blob:it.file,name:it.file.name,type:it.file.type,lastModified:it.file.lastModified},k);}});
+    const rec={classe:cls.label,savedAt:Date.now(),settings:currentSettings(),
+      items:items.map(it=>({key:prefix+fileKey(it.file),name:it.file.name,type:it.file.type,lastModified:it.file.lastModified,student:it.student||null,frameColor:it.frameColor,offset:it.offset,exifTime:it.exifTime,time:it.time}))};
+    await tx(db,'lavori','readwrite',s=>s.put(rec,cls.label));
+    const used=new Set(rec.items.map(i=>i.key));
+    await tx(db,'originali','readwrite',s=>{for(const k of keys)if(k.startsWith(prefix)&&!used.has(k))s.delete(k);});
+    $('#saveInfo').textContent=`Salvato: ${cls.label}, ${items.length} foto, ${new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}.`;
+    listWorks();
+  }catch(e){$('#saveInfo').textContent='Salvataggio automatico non riuscito: '+errText(e);}
+}
+async function listWorks(){
+  const sel=$('#works');
+  try{const db=await openDb();const recs=await tx(db,'lavori','readonly',s=>s.getAll());
+    recs.sort((a,b)=>b.savedAt-a.savedAt);
+    sel.innerHTML=recs.length?recs.map(r=>`<option value="${r.classe.replace(/"/g,'&quot;')}">${r.classe} · ${r.items.length} foto · ${r.items.filter(i=>i.student).length} assegnate · ${new Date(r.savedAt).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</option>`).join(''):'<option value="">Nessun lavoro salvato</option>';
+    $('#resumeBtn').disabled=$('#deleteWorkBtn').disabled=!recs.length;
+  }catch(e){sel.innerHTML='<option value="">Salvataggio locale non disponibile</option>';}
+}
+async function resumeWork(label){
+  const db=await openDb(),rec=await tx(db,'lavori','readonly',s=>s.get(label));if(!rec)return;
+  if(items.length&&!confirm(`Sostituire le foto attualmente caricate con il lavoro salvato di ${label}?`))return;
+  clearAll();applySettings(rec.settings);
+  if(elenco){const ci=elenco.classes.findIndex(c=>c.label===label);if(ci>=0){$('#classe').value=String(ci);try{localStorage.setItem(LS_CLASS,String(ci));}catch(_){}}}
+  let missing=0;
+  for(const i of rec.items){const o=await tx(db,'originali','readonly',s=>s.get(i.key));if(!o){missing++;continue;}
+    const it={id:nextId++,file:new File([o.blob],i.name,{type:i.type||'',lastModified:i.lastModified}),status:'queued',offset:i.offset,result:null,frameColor:i.frameColor||'none',time:i.time||0,exifTime:i.exifTime||null,student:i.student||null};
+    items.push(it);makeCard(it);}
+  sortItems();updateProgress();refreshNames();pumpDecode();
+  $('#saveInfo').textContent=`Ripreso ${label}: ${items.length} foto${missing?`, ${missing} non recuperabili`:''}. Le foto vengono rielaborate.`;
+}
+async function deleteWork(label){
+  if(!confirm(`Eliminare il lavoro salvato di ${label}? Le foto già scaricate non vengono toccate.`))return;
+  const db=await openDb();await tx(db,'lavori','readwrite',s=>s.delete(label));
+  const keys=await tx(db,'originali','readonly',s=>s.getAllKeys());
+  await tx(db,'originali','readwrite',s=>{for(const k of keys)if(k.startsWith(label+'|'))s.delete(k);});
+  listWorks();$('#saveInfo').textContent=`Lavoro di ${label} eliminato.`;
+}
+$('#resumeBtn').addEventListener('click',()=>{const v=$('#works').value;if(v)resumeWork(v).catch(e=>{$('#saveInfo').textContent='Ripresa non riuscita: '+errText(e);});});
+$('#deleteWorkBtn').addEventListener('click',()=>{const v=$('#works').value;if(v)deleteWork(v).catch(e=>{$('#saveInfo').textContent='Eliminazione non riuscita: '+errText(e);});});
+listWorks();
 
 /* ---------------------- PDF galleria di classe (A3 orizzontale, jsPDF caricato lazy) ----------------------
    Foto degli studenti della classe scelta (solo quelle assegnate), ordine alfabetico, nome sotto la foto,
