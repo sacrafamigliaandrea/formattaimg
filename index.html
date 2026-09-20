@@ -3,53 +3,70 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Foto per il registro</title>
-<meta name="description" content="Converte foto HEIC in PNG quadrati a 72 dpi sotto i 200 KB, con bollino del campus. Tutto nel browser.">
+<title>Prepara le foto per il registro</title>
+<meta name="description" content="Scuola Sacra Famiglia: converte le foto in PNG quadrati a 72 dpi sotto i 200 KB, con bollino del campus. Tutto nel browser.">
+<meta name="theme-color" content="#C43B33">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Open+Sans:ital,wght@0,400;0,700;1,700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --green:#1B6D3F; --green-dark:#14532F; --green-soft:#E6F1EB; --green-mid:#3F8A5F;
+  /* palette scuola: rosso del logo campus per l'intestazione, blu istituzionale per gli accenti, verde solo per "Pronto" */
+  --red:#C43B33; --red-dark:#A32F29;
+  --accent:#123E90; --accent-dark:#0E3172; --accent-soft:#E6ECF7; --accent-mid:#3D62B3;
+  --ok:#1B6D3F; --ok-soft:#E6F1EB;
   --ink:#1D2A24; --ink-2:#4B5A52; --ink-3:#7C8A83;
   --line:#D9E2DC; --bg:#F4F7F5; --card:#FFFFFF;
   --amber:#B7791F; --amber-soft:#FBF1DD; --blue:#2563A6; --blue-soft:#E3ECF7;
   --r:12px; --shadow:0 1px 2px rgba(20,40,30,.06),0 6px 20px rgba(20,40,30,.06);
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;padding:0}
 body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.45}
 button,input,select{font:inherit}
-header{background:var(--green);color:#fff;padding:22px 32px;display:flex;align-items:center;gap:18px}
-header .logo{width:44px;height:44px;flex:none}
-header h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em}
-header p{margin:2px 0 0;font-size:13.5px;opacity:.88}
+header{background:var(--red);color:#fff;padding:20px 32px;display:flex;align-items:center;gap:18px}
+header .wordmark{flex:none;background:#fff;color:var(--red);font-family:"Open Sans",Inter,sans-serif;font-weight:700;font-size:22px;line-height:1;padding:9px 12px 11px;border-radius:6px;letter-spacing:-.01em}
+header h1{margin:0;font-size:21px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+header h1 span{display:block;font-size:16px;font-weight:500;opacity:.92;margin-top:2px}
+header p{margin:4px 0 0;font-size:13.5px;opacity:.9}
 main{max-width:1680px;margin:0 auto;padding:24px 32px 60px}
 
 /* ---- pannello controlli ---- */
 .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:18px 28px;align-items:start}
-.drop{border:2px dashed var(--green-mid);border-radius:var(--r);background:var(--green-soft);padding:26px 20px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s;min-height:118px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px}
-.drop.over{background:#D7E9DE;border-color:var(--green)}
+.drop{border:2px dashed var(--accent-mid);border-radius:var(--r);background:var(--accent-soft);padding:26px 20px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s;min-height:118px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px}
+.drop.over{background:#D7E9DE;border-color:var(--accent)}
 .drop.compact{min-height:0;padding:14px 20px;flex-direction:row;gap:14px}
-.drop strong{font-weight:600;color:var(--green-dark)}
+.drop strong{font-weight:600;color:var(--accent-dark)}
 .drop span{font-size:13px;color:var(--ink-2)}
-.drop svg{width:34px;height:34px;color:var(--green)}
+.drop svg{width:34px;height:34px;color:var(--accent)}
 .drop.compact svg{width:24px;height:24px}
 .settings{display:grid;grid-template-columns:repeat(2,minmax(150px,auto));gap:10px 20px;align-content:start}
 .settings label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:500;color:var(--ink-2)}
-.settings input,.settings select{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:#fff;color:var(--ink);min-width:150px}
-.settings input:focus,.settings select:focus{outline:2px solid var(--green-mid);outline-offset:1px;border-color:var(--green-mid)}
+.settings input,.settings select{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:#fff;color:var(--ink);min-width:0;width:100%}
+.settings input:focus,.settings select:focus{outline:2px solid var(--accent-mid);outline-offset:1px;border-color:var(--accent-mid)}
 .settings .full{grid-column:1/-1}
+.settings .inline{display:flex;gap:8px;align-items:center}
+.settings .inline select{flex:1 1 120px;min-width:0}
+.btn.mini{padding:6px 10px;font-size:12.5px;font-weight:500;white-space:nowrap}
+.settings input[type=color]{flex:none;width:46px;min-width:0;height:36px;padding:2px 4px;cursor:pointer}
+.settings input[type=color]:disabled{opacity:.4;cursor:not-allowed}
+.swatches{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2)}
+.swatches span{margin-right:2px}
+.sw{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0;background:var(--sw)}
+.sw.none{background:linear-gradient(135deg,#fff 44%,var(--ink-3) 44%,var(--ink-3) 56%,#fff 56%)}
+.sw.on{box-shadow:0 0 0 2px var(--accent)}
+.sw:focus-visible{outline:2px solid var(--accent-mid);outline-offset:2px}
 .actions{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:12px;border-top:1px solid var(--line);padding-top:14px}
-.btn{border:1px solid var(--green);background:var(--green);color:#fff;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .15s}
-.btn:hover{background:var(--green-dark)}
+.btn{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background .15s}
+.btn:hover{background:var(--accent-dark)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.btn.ghost{background:#fff;color:var(--green-dark)}
-.btn.ghost:hover{background:var(--green-soft)}
+.btn.ghost{background:#fff;color:var(--accent-dark)}
+.btn.ghost:hover{background:var(--accent-soft)}
 .btn svg{width:16px;height:16px}
 .progress{flex:1;min-width:220px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--ink-2)}
 .bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:var(--green);transition:width .2s}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
 .hint{grid-column:1/-1;font-size:12.5px;color:var(--ink-3);margin:-6px 0 0}
 
 /* ---- griglia card ---- */
@@ -68,7 +85,7 @@ main{max-width:1680px;margin:0 auto;padding:24px 32px 60px}
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border-radius:99px;padding:3px 10px;width:max-content}
 .badge.queued{background:#EEF1EF;color:var(--ink-2)}
 .badge.working{background:var(--blue-soft);color:var(--blue)}
-.badge.done{background:var(--green-soft);color:var(--green-dark)}
+.badge.done{background:var(--ok-soft);color:var(--ok)}
 .badge.error{background:var(--amber-soft);color:var(--amber)}
 .badge.warn{background:var(--amber-soft);color:var(--amber)}
 .badge .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
@@ -77,26 +94,45 @@ main{max-width:1680px;margin:0 auto;padding:24px 32px 60px}
 .details{font-size:13px;color:var(--ink-2);display:grid;grid-template-columns:auto 1fr;gap:2px 10px}
 .details b{font-weight:600;color:var(--ink)}
 .small{font-size:12px;color:var(--ink-3)}
-.card .btn{align-self:flex-start;margin-top:auto}
+.cardbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+.drop .touch{display:none}
+@media (hover:none) and (pointer:coarse){.drop .desk{display:none}.drop .touch{display:inline}}
 .errmsg{font-size:13px;color:var(--amber);background:var(--amber-soft);border-radius:8px;padding:8px 10px}
 .empty{margin-top:40px;text-align:center;color:var(--ink-3);font-size:14px}
 footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-@media (max-width:1100px){.panel{grid-template-columns:1fr}.settings{grid-template-columns:repeat(3,1fr)}}
-@media (max-width:640px){main{padding:16px}.grid{grid-template-columns:1fr}.card{grid-template-columns:1fr 1fr}.card .meta{grid-column:1/-1}.settings{grid-template-columns:1fr 1fr}}
+@media (max-width:1100px){.panel{grid-template-columns:1fr}.settings{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}}
+/* ---- smartphone ---- */
+@media (max-width:640px){
+  header{padding:14px 16px;gap:12px}
+  header .wordmark{font-size:17px;padding:7px 9px 9px}
+  header h1{font-size:16px;line-height:1.3}
+  header h1 span{font-size:13.5px}
+  header p{font-size:12.5px}
+  main{padding:12px 12px 40px}
+  .panel{padding:14px 12px;gap:14px}
+  .drop{padding:18px 12px}.drop.compact{padding:12px;flex-direction:column;gap:4px}.drop.compact span{display:none}
+  .settings{grid-template-columns:1fr 1fr;gap:10px 12px}
+  .settings .inline{flex-wrap:wrap}
+  .actions .btn{flex:1 1 45%;justify-content:center}
+  .progress{flex-basis:100%}
+  .grid{grid-template-columns:1fr;gap:12px}
+  .card{grid-template-columns:1fr 1fr;padding:12px;gap:10px}
+  .card .meta{grid-column:1/-1}
+  .preview,.result{width:100%;max-width:200px;height:auto;aspect-ratio:1}
+  .preview canvas{max-width:100%;height:auto}
+  .result img{width:100%;height:100%;object-fit:contain}
+  .cardbtns .btn{flex:1 1 45%;justify-content:center}
+  .name{white-space:normal;word-break:break-all}
+}
 </style>
 </head>
 <body>
 <header>
-  <svg class="logo" viewBox="0 0 44 44" fill="none" aria-hidden="true">
-    <rect x="3" y="3" width="38" height="38" rx="8" stroke="#fff" stroke-width="2.5"/>
-    <rect x="12" y="12" width="20" height="20" rx="3" fill="#fff" opacity=".92"/>
-    <path d="M12 26l6-6 5 5 4-3 5 4" stroke="#1B6D3F" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="26" cy="17" r="2" fill="#1B6D3F"/>
-  </svg>
+  <div class="wordmark" aria-hidden="true">campus</div>
   <div>
-    <h1>Foto per il registro</h1>
-    <p>HEIC dell'iPhone → PNG quadrato, 72 dpi, sotto i 200 KB, con bollino del campus. Tutto nel browser, nessun caricamento su server.</p>
+    <h1>Scuola Sacra Famiglia<span>prepara le foto per il registro</span></h1>
+    <p>Animatore Digitale Andrea Cerioli</p>
   </div>
 </header>
 
@@ -104,8 +140,9 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
   <section class="panel">
     <div class="drop" id="drop" tabindex="0" role="button" aria-label="Scegli o trascina le foto">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-      <strong>Trascina qui le foto oppure clicca per sceglierle</strong>
-      <span>HEIC, HEIF, JPG, PNG, WebP · selezione multipla · le originali non vengono modificate</span>
+      <strong class="desk">Trascina qui le foto oppure clicca per sceglierle</strong>
+      <strong class="touch">Tocca per scegliere le foto dalla galleria</strong>
+      <span>HEIC, HEIF, JPG, PNG, WebP · selezione multipla · le originali non vengono modificate · tutto resta sul tuo dispositivo</span>
       <input type="file" id="file" class="sr" multiple accept=".heic,.heif,image/heic,image/heif,image/*">
     </div>
 
@@ -143,12 +180,58 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
           <option value="0.33">Grande</option>
         </select>
       </label>
+      <label>Cornice predefinita
+        <span class="inline">
+          <select id="frameColor">
+            <option value="none" selected>Nessuna</option>
+            <option value="#C43B33">Rossa</option>
+            <option value="#123E90">Blu</option>
+            <option value="#F2C230">Gialla</option>
+            <option value="#1B6D3F">Verde</option>
+          </select>
+          <button type="button" class="btn ghost mini" id="frameAll" title="Assegna questa cornice a tutte le foto caricate">Applica a tutte</button>
+        </span>
+      </label>
+      <label>Spessore cornice
+        <select id="frameWidth">
+          <option value="0.03">Sottile</option>
+          <option value="0.05" selected>Media</option>
+          <option value="0.08">Spessa</option>
+        </select>
+      </label>
       <label>Ritaglio iniziale
         <select id="cropDefault">
           <option value="0.5" selected>Centrato</option>
           <option value="0">Inizio (alto / sinistra)</option>
           <option value="1">Fine (basso / destra)</option>
         </select>
+      </label>
+      <label>Filtro (tutte le foto)
+        <select id="filter">
+          <option value="none" selected>Nessuno</option>
+          <option value="auto">Auto livelli</option>
+          <option value="vivido">Vivido</option>
+          <option value="luminoso">Luminoso</option>
+          <option value="caldo">Caldo</option>
+          <option value="freddo">Freddo</option>
+          <option value="morbido">Morbido</option>
+          <option value="bn">Bianco e nero</option>
+          <option value="seppia">Seppia</option>
+        </select>
+      </label>
+      <label>Sfondo dietro il soggetto
+        <span class="inline">
+          <select id="bgMode">
+            <option value="none" selected>Originale</option>
+            <option value="#FFFFFF">Bianco</option>
+            <option value="#E6E8EA">Grigio chiaro</option>
+            <option value="#CFE3F5">Azzurro</option>
+            <option value="#DCEFE3">Verde chiaro</option>
+            <option value="#123E90">Blu istituzionale</option>
+            <option value="custom">Personalizzato</option>
+          </select>
+          <input type="color" id="bgCustom" value="#F4EBDD" title="Colore personalizzato" aria-label="Colore di sfondo personalizzato" disabled>
+        </span>
       </label>
     </div>
 
@@ -157,14 +240,18 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 19h16"/></svg>
         Scarica tutte (ZIP)
       </button>
-      <button class="btn ghost" id="redoBtn" disabled>
+      <button class="btn" id="shareBtn" disabled hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>
+        Salva tutte nella galleria
+      </button>
+      <button class="btn ghost" id="redoBtn" disabled title="Ricodifica tutte le foto con le impostazioni attuali e ritenta il riconoscimento del soggetto dove era fallito">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>
-        Rielabora tutte con le impostazioni attuali
+        Rielabora tutte
       </button>
       <button class="btn ghost" id="clearBtn" disabled>Svuota elenco</button>
       <div class="progress"><span id="progText">Nessuna foto caricata</span><div class="bar"><i id="progBar"></i></div></div>
     </div>
-    <p class="hint">Trascina l'anteprima a sinistra di ogni foto per spostare il ritaglio quadrato. L'anteprima a destra è il PNG finale. Se cambi le impostazioni, premi "Rielabora tutte".</p>
+    <p class="hint">Trascina l'anteprima a sinistra di ogni foto per spostare il ritaglio quadrato. L'anteprima a destra è il PNG finale. Le impostazioni del pannello si applicano subito a tutte le foto caricate; "Cornice predefinita" e "Ritaglio iniziale" valgono per le foto nuove. Lo sfondo uniforme usa un modello di riconoscimento del soggetto scaricato alla prima attivazione.</p>
   </section>
 
   <section class="grid" id="grid"></section>
@@ -429,7 +516,9 @@ async function decodeFile(file){
   }
   throw new Error('Formato non riconosciuto dal browser');
 }
-const WORK_SHORT=1200;
+const IS_MOBILE=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)<900);
+const WORK_SHORT=IS_MOBILE||(navigator.deviceMemory&&navigator.deviceMemory<=4)?1000:1200; // memoria contenuta sui telefoni
+const CAN_SHARE=!!(navigator.canShare&&navigator.share&&navigator.canShare({files:[new File([new Uint8Array(8)],'x.png',{type:'image/png'})]}));
 function toWorkCanvas(src){
   let w=src.naturalWidth||src.width,h=src.naturalHeight||src.height;
   const short=Math.min(w,h),scale=short>WORK_SHORT?WORK_SHORT/short:1;
@@ -444,9 +533,17 @@ function toWorkCanvas(src){
 
 /* ---------------------- bollino campus ---------------------- */
 const RED='#C43B33',GREY='#6D6E71';
-function drawBadge(ctx,S,cfg){
+/* cornice: la foto viene disegnata nel quadrato interno, la cornice non copre il ritaglio */
+function drawFrame(ctx,S,frame){
+  if(frame.color==='none')return 0;
+  const t=Math.round(S*frame.width);
+  ctx.save();ctx.fillStyle=frame.color;
+  ctx.fillRect(0,0,S,t);ctx.fillRect(0,S-t,S,t);ctx.fillRect(0,0,t,S);ctx.fillRect(S-t,0,t,S);
+  ctx.restore();return t;
+}
+function drawBadge(ctx,S,cfg,inset=0){
   if(cfg.style==='none')return;
-  const m=S*0.035;
+  const m=S*0.035+inset;
   const right=cfg.pos.endsWith('r'),bottom=cfg.pos.startsWith('b');
   if(cfg.style==='tondo'){
     const d=S*cfg.size,r=d/2,cx=right?S-m-r:m+r,cy=bottom?S-m-r:m+r;
@@ -492,12 +589,95 @@ function ensureFonts(){
   return fontsReady;
 }
 
+/* ---------------------- filtri (pixel puri, nessuna dipendenza) ---------------------- */
+const FILTERS={
+  none:null,
+  auto:{auto:true,sat:1.05},
+  vivido:{sat:1.35,con:1.12},
+  luminoso:{bri:1.08,con:1.05,sat:1.05},
+  caldo:{temp:14,sat:1.08},
+  freddo:{temp:-14,sat:1.05},
+  morbido:{con:0.9,bri:1.04,sat:0.92},
+  bn:{sat:0,con:1.1},
+  seppia:{sepia:true,con:1.05}
+};
+function applyFilter(img,name){
+  const f=FILTERS[name];if(!f)return;
+  const d=img.data,n=d.length;
+  let lo=0,hi=255;
+  if(f.auto){ // auto livelli: stira la luminanza tra il 1° e il 99° percentile (solo pixel opachi)
+    const hist=new Uint32Array(256);let tot=0;
+    for(let i=0;i<n;i+=4){if(d[i+3]<128)continue;hist[(d[i]*299+d[i+1]*587+d[i+2]*114)/1000|0]++;tot++;}
+    if(tot){let acc=0,l=0;while(l<255&&acc+hist[l]<tot*0.01)acc+=hist[l++];acc=0;let h=255;while(h>0&&acc+hist[h]<tot*0.01)acc+=hist[h--];
+      if(h-l>40){lo=l;hi=h;}}
+  }
+  const bri=f.bri||1,con=f.con||1,sat=f.sat==null?1:f.sat,temp=f.temp||0,scale=255/(hi-lo);
+  const lut=new Uint8ClampedArray(256);
+  for(let v=0;v<256;v++){let x=(v-lo)*scale*bri;lut[v]=(x-128)*con+128;}
+  for(let i=0;i<n;i+=4){
+    if(d[i+3]===0)continue;
+    let r=lut[d[i]],g=lut[d[i+1]],b=lut[d[i+2]];
+    if(f.sepia){const nr=r*.393+g*.769+b*.189,ng=r*.349+g*.686+b*.168,nb=r*.272+g*.534+b*.131;r=nr;g=ng;b=nb;}
+    if(sat!==1){const l=r*.299+g*.587+b*.114;r=l+(r-l)*sat;g=l+(g-l)*sat;b=l+(b-l)*sat;}
+    if(temp){r+=temp;b-=temp;}
+    d[i]=r;d[i+1]=g;d[i+2]=b; // Uint8ClampedArray satura da sé
+  }
+}
+
+/* ---------------------- sfondo uniforme: segmentazione del soggetto (MediaPipe, lazy) ----------------------
+   Modello "selfie segmenter" (persona vs sfondo). Il ritaglio (canvas con alfa) viene calcolato una volta
+   per foto a risoluzione di lavoro e riusato a ogni ri-encoding; cambiare colore di sfondo non rilancia il modello. */
+const MP_BASE='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21';
+const MP_MODEL='https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite';
+let segmenterP=null;
+function loadSegmenter(){
+  if(!segmenterP)segmenterP=(async()=>{
+    const {FilesetResolver,ImageSegmenter}=await import(MP_BASE+'/vision_bundle.mjs');
+    const vision=await FilesetResolver.forVisionTasks(MP_BASE+'/wasm');
+    const opts=d=>({baseOptions:{modelAssetPath:MP_MODEL,delegate:d},runningMode:'IMAGE',outputConfidenceMasks:true,outputCategoryMask:false});
+    try{return await ImageSegmenter.createFromOptions(vision,opts('GPU'));}catch(_){return await ImageSegmenter.createFromOptions(vision,opts('CPU'));}
+  })().catch(e=>{segmenterP=null;throw new Error('modello non caricato: '+errText(e));});
+  return segmenterP;
+}
+let segChain=Promise.resolve();
+function segmentItem(it){ // una sola istanza: esecuzione sequenziale
+  const run=async()=>{
+    const seg=await loadSegmenter();
+    const W=it.work.width,H=it.work.height,sc=Math.min(1,512/Math.max(W,H));
+    const small=document.createElement('canvas');small.width=Math.round(W*sc);small.height=Math.round(H*sc);
+    small.getContext('2d').drawImage(it.work,0,0,small.width,small.height);
+    const res=seg.segment(small);
+    const masks=res.confidenceMasks,m=masks[masks.length-1],mw=m.width,mh=m.height,v=m.getAsFloat32Array();
+    const md=new ImageData(mw,mh);let cover=0;
+    // soglia stretta (0.45→0.8) per limitare l'alone dello sfondo originale ai bordi del soggetto
+    for(let i=0;i<mw*mh;i++){const x=(v[i]-0.45)/0.35,a=x<=0?0:x>=1?1:x*x*(3-2*x);md.data[i*4+3]=a*255;cover+=a;}
+    res.close();
+    if(cover/(mw*mh)<0.03)throw new Error('soggetto non riconosciuto');
+    // si conserva solo la maschera piccola (≤512 px, alfa): il ritaglio viene applicato al momento dell'encoding
+    const mc=document.createElement('canvas');mc.width=mw;mc.height=mh;mc.getContext('2d').putImageData(md,0,0);
+    it.mask=mc;it.segError=null;
+  };
+  const p=segChain.then(run,run);segChain=p.catch(()=>{});return p;
+}
+
 /* ---------------------- stato e UI ---------------------- */
 const $=s=>document.querySelector(s);
-const els={drop:$('#drop'),file:$('#file'),grid:$('#grid'),empty:$('#empty'),zip:$('#zipBtn'),redo:$('#redoBtn'),clear:$('#clearBtn'),progText:$('#progText'),progBar:$('#progBar')};
+const els={drop:$('#drop'),file:$('#file'),grid:$('#grid'),empty:$('#empty'),zip:$('#zipBtn'),share:$('#shareBtn'),redo:$('#redoBtn'),clear:$('#clearBtn'),progText:$('#progText'),progBar:$('#progBar')};
+if(CAN_SHARE)els.share.hidden=false;
+/* Salvataggio nella galleria del telefono: Web Share API con file → foglio di condivisione con "Salva immagine/i" (Foto su iOS, Galleria su Android).
+   Il download classico su iPhone finisce in "File", non in Foto. Va chiamato da un gesto dell'utente, senza await prima. */
+function shareFiles(list){
+  const files=list.filter(i=>i.result).map(i=>new File([i.result.blob],outName(i.file.name),{type:'image/png'}));
+  if(!files.length)return;
+  if(!navigator.canShare({files})){els.progText.textContent='Il dispositivo non consente la condivisione di questi file: usa il download.';return;}
+  navigator.share({files,title:'Foto per il registro'}).catch(e=>{if(e&&e.name!=='AbortError')els.progText.textContent='Condivisione non riuscita: '+errText(e);});
+}
+$('#shareBtn').addEventListener('click',()=>shareFiles(items.filter(i=>i.status==='done')));
 const items=[];let nextId=1;
 const cfg=()=>({limit:Math.max(30,Number($('#limitKB').value)||200)*1024,maxSide:Number($('#maxSide').value),
-  badge:{style:$('#badgeStyle').value,pos:$('#badgePos').value,size:Number($('#badgeSize').value)},cropDefault:Number($('#cropDefault').value)});
+  badge:{style:$('#badgeStyle').value,pos:$('#badgePos').value,size:Number($('#badgeSize').value)},
+  frame:{color:$('#frameColor').value,width:Number($('#frameWidth').value)},cropDefault:Number($('#cropDefault').value),
+  filter:$('#filter').value,bg:(m=>({mode:m,color:m==='custom'?$('#bgCustom').value:m}))($('#bgMode').value)});
 const fmtKB=b=>(b/1024).toFixed(0)+' KB';
 const outName=n=>n.replace(/\.[^.]+$/,'')+'-1x1.png';
 
@@ -510,13 +690,23 @@ function makeCard(it){
     <div class="result"><span class="ph">—</span></div>
     <div class="meta"><div class="name" title="${it.file.name.replace(/"/g,'&quot;')}">${it.file.name}</div>
       <span class="badge queued"><i class="dot"></i>In coda</span>
+      <div class="swatches"><span>Cornice</span>${FRAMES.map(([v,n])=>`<button type="button" class="sw${v==='none'?' none':''}" data-color="${v}" title="${n}" aria-label="Cornice ${n.toLowerCase()}" style="--sw:${v==='none'?'transparent':v}"></button>`).join('')}</div>
       <div class="details"></div>
-      <button class="btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 19h16"/></svg>Scarica PNG</button>
+      <div class="cardbtns">
+        <button class="btn dl" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 19h16"/></svg>Scarica PNG</button>
+        <button class="btn ghost share" disabled ${CAN_SHARE?'':'hidden'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>Salva nella galleria</button>
+      </div>
     </div>`;
-  it.el=el;it.q={preview:el.querySelector('.preview'),result:el.querySelector('.result'),badge:el.querySelector('.badge'),details:el.querySelector('.details'),btn:el.querySelector('.btn')};
+  it.el=el;it.q={preview:el.querySelector('.preview'),result:el.querySelector('.result'),badge:el.querySelector('.badge'),details:el.querySelector('.details'),btn:el.querySelector('.btn.dl'),share:el.querySelector('.btn.share')};
   it.q.btn.addEventListener('click',()=>{if(!it.result)return;const a=document.createElement('a');a.href=it.result.url;a.download=outName(it.file.name);a.click();});
+  it.q.share.addEventListener('click',()=>{if(it.result)shareFiles([it]);});
+  el.querySelector('.swatches').addEventListener('click',e=>{const b=e.target.closest('.sw');if(!b)return;setFrame(it,b.dataset.color);if(it.work)scheduleEncode(it);});
+  paintSwatches(it);
   els.grid.appendChild(el);
 }
+const FRAMES=[['none','Nessuna'],['#C43B33','Rossa'],['#123E90','Blu'],['#F2C230','Gialla'],['#1B6D3F','Verde']];
+function paintSwatches(it){for(const b of it.el.querySelectorAll('.sw'))b.classList.toggle('on',b.dataset.color===it.frameColor);}
+function setFrame(it,color){it.frameColor=color;paintSwatches(it);}
 function setStatus(it,cls,text){it.q.badge.className='badge '+cls;it.q.badge.innerHTML='<i class="dot"></i>'+text;it.el.classList.toggle('err',cls==='error');}
 function setDetails(it,rows){it.q.details.innerHTML=rows.map(([k,v])=>`<span>${k}</span><b>${v}</b>`).join('');}
 
@@ -530,7 +720,8 @@ function buildPreview(it){
   let drag=null;
   c.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,o:it.offset};c.setPointerCapture(e.pointerId);c.classList.add('dragging');});
   c.addEventListener('pointermove',e=>{if(!drag)return;const horiz=W>H,side=Math.min(c.width,c.height),span=(horiz?c.width:c.height)-side;if(span<=0)return;
-    const d=horiz?e.clientX-drag.x:e.clientY-drag.y;it.offset=Math.max(0,Math.min(1,drag.o+d/span));drawPreview(it);});
+    const scale=c.getBoundingClientRect().width/c.width||1; // il canvas può essere ridotto via CSS sui telefoni
+    const d=(horiz?e.clientX-drag.x:e.clientY-drag.y)/scale;it.offset=Math.max(0,Math.min(1,drag.o+d/span));drawPreview(it);});
   const end=()=>{if(!drag)return;drag=null;c.classList.remove('dragging');if(it.offset!==it.encodedOffset)scheduleEncode(it);};
   c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);
 }
@@ -558,11 +749,27 @@ function scheduleEncode(it){clearTimeout(it.timer);it.timer=setTimeout(()=>encod
 async function encodeItem(it){
   if(!it.work)return;
   if(it.status==='encoding'){it.dirty=true;return;}
-  it.status='encoding';setStatus(it,'working','Elaborazione');it.q.btn.disabled=true;updateProgress();
+  it.status='encoding';setStatus(it,'working','Elaborazione');it.q.btn.disabled=true;it.q.share.disabled=true;updateProgress();
   const c=cfg(),r=cropRect(it),side0=Math.min(c.maxSide,r.side),minSide=Math.min(200,side0);
+  const bgOn=c.bg.mode!=='none';
+  if(bgOn&&!it.mask&&!it.segError){
+    setStatus(it,'working','Riconoscimento soggetto');
+    try{await segmentItem(it);}catch(e){it.segError=errText(e);}
+    setStatus(it,'working','Elaborazione');
+  }
   await ensureFonts();
   const cv=document.createElement('canvas');cv.width=cv.height=side0;const x=cv.getContext('2d');x.imageSmoothingQuality='high';
-  x.drawImage(it.work,r.sx,r.sy,r.side,r.side,0,0,side0,side0);drawBadge(x,side0,c.badge);
+  const frame={color:it.frameColor||'none',width:c.frame.width};   // colore per singola foto, spessore globale
+  const t=frame.color==='none'?0:Math.round(side0*frame.width),inner=side0-2*t;
+  // foto su canvas temporaneo; se lo sfondo è attivo si applica la maschera del soggetto (destination-in) → filtro sui soli pixel della foto
+  const tmp=document.createElement('canvas');tmp.width=tmp.height=inner;const tx=tmp.getContext('2d');tx.imageSmoothingQuality='high';
+  tx.drawImage(it.work,r.sx,r.sy,r.side,r.side,0,0,inner,inner);
+  if(bgOn&&it.mask){const ms=it.mask.width/it.work.width;tx.globalCompositeOperation='destination-in';
+    tx.drawImage(it.mask,r.sx*ms,r.sy*ms,r.side*ms,r.side*ms,0,0,inner,inner);tx.globalCompositeOperation='source-over';}
+  if(c.filter!=='none'){const id=tx.getImageData(0,0,inner,inner);applyFilter(id,c.filter);tx.putImageData(id,0,0);}
+  if(bgOn){x.fillStyle=c.bg.color;x.fillRect(t,t,inner,inner);}
+  x.drawImage(tmp,t,t);
+  drawFrame(x,side0,frame);drawBadge(x,side0,c.badge,t);
   it.encodedOffset=it.offset;
   let res;
   try{
@@ -575,8 +782,11 @@ async function encodeItem(it){
     it.status='done';
     it.q.result.innerHTML=`<img alt="Anteprima PNG finale" src="${it.result.url}">`;
     setStatus(it,res.over?'warn':'done',res.over?'Sopra il limite anche al minimo':'Pronto');
-    setDetails(it,[['Dimensioni',`${res.side} × ${res.side} px`],['Colore',res.bits===24?'24 bit':'8 bit (palette 256)'],['Peso',fmtKB(res.bytes.length)],['Risoluzione','72 dpi'],['File',outName(it.file.name)]]);
-    it.q.btn.disabled=false;
+    const rows=[['Dimensioni',`${res.side} × ${res.side} px`],['Colore',res.bits===24?'24 bit':'8 bit (palette 256)'],['Peso',fmtKB(res.bytes.length)],['Risoluzione','72 dpi']];
+    if(bgOn)rows.push(['Sfondo',it.mask?'uniforme':'non sostituito ('+it.segError+')']);
+    if(c.filter!=='none')rows.push(['Filtro',$('#filter').selectedOptions[0].textContent]);
+    rows.push(['File',outName(it.file.name)]);setDetails(it,rows);
+    it.q.btn.disabled=false;it.q.share.disabled=false;
   }catch(err){it.status='error';setStatus(it,'error','Errore');it.q.details.innerHTML=`<div class="errmsg" style="grid-column:1/-1">${err.message||err}</div>`;}
   updateProgress();
   if(it.dirty){it.dirty=false;encodeItem(it);}
@@ -586,14 +796,15 @@ function updateProgress(){
   els.progBar.style.width=tot?(done/tot*100)+'%':'0';
   els.progText.textContent=tot?(done<tot?`Elaborate ${done} di ${tot}`:`${ok} PNG pronti su ${tot}`):'Nessuna foto caricata';
   const idle=done===tot;
-  els.zip.disabled=!(idle&&ok>0);els.redo.disabled=!(idle&&ok>0);els.clear.disabled=!(tot&&idle);
+  els.zip.disabled=!(idle&&ok>0);els.redo.disabled=!(idle&&ok>0);els.clear.disabled=!(tot&&idle);els.share.disabled=!(idle&&ok>0);
   els.empty.style.display=tot?'none':'';els.drop.classList.toggle('compact',tot>0);
 }
 
 /* ---------------------- input file ---------------------- */
 function addFiles(list){
   const files=[...list].filter(f=>isHeic(f)||/^image\//.test(f.type)||/\.(jpe?g|png|webp|gif|bmp|tiff?)$/i.test(f.name));
-  for(const f of files){const it={id:nextId++,file:f,status:'queued',offset:0.5,result:null};items.push(it);makeCard(it);}
+  const defFrame=$('#frameColor').value;
+  for(const f of files){const it={id:nextId++,file:f,status:'queued',offset:0.5,result:null,frameColor:defFrame};items.push(it);makeCard(it);}
   updateProgress();pumpDecode();
 }
 els.file.addEventListener('change',e=>{addFiles(e.target.files);e.target.value='';});
@@ -604,7 +815,14 @@ els.drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preve
 els.drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
 document.addEventListener('dragover',e=>e.preventDefault());document.addEventListener('drop',e=>e.preventDefault());
 
-els.redo.addEventListener('click',()=>{for(const it of items)if(it.work)encodeItem(it);});
+function reencodeAll(){for(const it of items)if(it.work)encodeItem(it);}
+els.redo.addEventListener('click',()=>{for(const it of items)it.segError=null;reencodeAll();}); // ritenta anche la segmentazione fallita
+// le impostazioni globali si applicano subito a tutte le foto caricate (cornice predefinita e ritaglio iniziale solo alle nuove)
+let autoTimer=null;
+['#limitKB','#maxSide','#badgeStyle','#badgePos','#badgeSize','#frameWidth','#filter','#bgMode','#bgCustom'].forEach(id=>
+  $(id).addEventListener('change',()=>{clearTimeout(autoTimer);autoTimer=setTimeout(reencodeAll,250);}));
+$('#bgMode').addEventListener('change',()=>{$('#bgCustom').disabled=$('#bgMode').value!=='custom';});
+$('#frameAll').addEventListener('click',()=>{const color=$('#frameColor').value;for(const it of items){if(it.frameColor===color)continue;setFrame(it,color);if(it.work)encodeItem(it);}});
 els.clear.addEventListener('click',()=>{for(const it of items){if(it.result)URL.revokeObjectURL(it.result.url);}items.length=0;els.grid.innerHTML='';updateProgress();});
 
 /* ---------------------- ZIP (metodo store) ---------------------- */
