@@ -108,7 +108,7 @@ dialog p{margin:6px 0;font-size:14px;color:var(--ink-2)}
 .slot .card{border:none;box-shadow:none;padding:0;border-radius:0}
 .slot .card .student,.slot .card .name .idx{display:none}
 .card .detach{display:none}
-.slot .card .detach{display:inline-flex}
+.slot .card .detach{display:inline-flex;align-self:center;padding:5px 10px;font-size:12px}
 .extraTitle{font-size:15px;margin:24px 0 0;color:var(--amber)}
 @media (max-width:700px){.roster{grid-template-columns:1fr}}
 @media (max-width:640px){.absentList{grid-template-columns:1fr}}
@@ -189,7 +189,16 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
   .preview,.result{width:100%;max-width:200px;height:auto;aspect-ratio:1}
   .preview canvas{max-width:100%;height:auto}
   .result img{width:100%;height:100%;object-fit:contain}
-  .cardbtns .btn{flex:1 1 45%;justify-content:center}
+  .cardbtns{gap:6px}
+  .cardbtns .btn{flex:1 1 45%;justify-content:center;padding:8px 10px;font-size:13px}
+  .cardbtns .btn.detach{flex:0 0 auto;padding:6px 10px;font-size:12px}
+  .slot{padding:10px 12px;gap:8px}
+  .slotHead{flex-wrap:wrap;gap:6px 8px}
+  .slotHead .sname{flex:1 1 100%;order:-1;padding-left:2px}
+  .slotHead .idx{order:-2}
+  .slotHead .addPhoto{margin-left:auto}
+  .card{gap:8px}
+  .meta{gap:6px}
 }
 
 /* ---- pannello impostazioni v2: tre gruppi compatti + barra comandi fissa ---- */
@@ -720,17 +729,16 @@ function drawFrame(ctx,S,frame,g){
   ctx.restore();
   return t;
 }
-/* banda della casata: nome in maiuscolo serif (Cinzel) e "Sacra Famiglia" in corsivo (Dancing Script) come sullo scudo,
+/* banda della casata: nome in maiuscolo serif (Cinzel) come sullo scudo (senza la riga "Sacra Famiglia"),
    filo nel colore secondario tra banda e foto, bordi sottili ai lati e in basso */
 function drawHouseBanner(ctx,S,H,g){
   ctx.save();
   ctx.fillStyle=H.main;ctx.fillRect(0,0,S,g.t);ctx.fillRect(0,0,g.l,S);ctx.fillRect(S-g.r,0,g.r,S);ctx.fillRect(0,S-g.b,S,g.b);
   const hl=Math.max(1,Math.round(S*0.004));ctx.fillStyle=H.line;ctx.fillRect(g.l,g.t-hl,S-g.l-g.r,hl);
-  const tb=g.t,textCx=S/2,avail=S*0.7;
-  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='alphabetic';
-  const name=H.name.toUpperCase();let fs=tb*0.34;ctx.font=`700 ${fs}px "Cinzel", serif`;let wN=ctx.measureText(name).width;if(wN>avail){fs*=avail/wN;ctx.font=`700 ${fs}px "Cinzel", serif`;}
-  ctx.fillText(name,textCx,tb*0.50);
-  let fs2=tb*0.30;ctx.font=`500 ${fs2}px "Dancing Script", cursive`;ctx.fillStyle='rgba(255,255,255,.95)';ctx.fillText('Sacra Famiglia',textCx,tb*0.86);
+  const tb=g.t,textCx=S/2,avail=S*0.8;
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+  const name=H.name.toUpperCase();let fs=tb*0.52;ctx.font=`700 ${fs}px "Cinzel", serif`;const wN=ctx.measureText(name).width;if(wN>avail){fs*=avail/wN;ctx.font=`700 ${fs}px "Cinzel", serif`;}
+  ctx.fillText(name,textCx,tb*0.53); // solo il nome della casata, centrato nella banda
   ctx.restore();
 }
 function drawBadge(ctx,S,cfg,inset=0){
@@ -866,7 +874,7 @@ function paintBackground(x,gx,gy,w,h,bg,it,r){ // r = rettangolo sorgente {sx,sy
 /* geometria della cornice: insets {l,t,r,b}. Stile "casata": banda alta in alto (9 % + 0,8 × spessore), bordi sottili 2 % altrove */
 function frameGeom(S,frame){
   if(!frame.house||frame.house==='none')return {l:0,t:0,r:0,b:0};
-  if(frame.style==='casata'){const thin=Math.round(S*0.02),top=Math.round(S*(0.09+frame.width*0.8));return {l:thin,t:top,r:thin,b:thin};}
+  if(frame.style==='casata'){const thin=Math.round(S*0.02),top=Math.round(S*(0.07+frame.width*0.7));return {l:thin,t:top,r:thin,b:thin};}
   const t=Math.round(S*frame.width);return {l:t,t:t,r:t,b:t};
 }
 /* dal quadrato di ritaglio prende la porzione con le proporzioni dell'area interna (cover), centrata */
@@ -1139,7 +1147,7 @@ function makeCard(it){
       <div class="details"></div>
       <div class="cardbtns">
         <button class="btn dl" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 19h16"/></svg>Scarica PNG</button>
-        <button type="button" class="btn ghost detach" title="La foto non è di questo studente: la toglie dal segnaposto e la mette tra le foto non assegnate, senza cancellarla">Togli dallo studente</button>
+        <button type="button" class="btn ghost mini detach" title="La foto non è di questo studente: la toglie dal segnaposto e la mette tra le foto non assegnate, senza cancellarla">Rimuovi</button>
         <button class="btn ghost share" disabled ${CAN_SHARE?'':'hidden'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>Salva nella galleria</button>
       </div>
     </div>`;
@@ -1406,7 +1414,11 @@ listWorks();
 let jspdfP=null;
 function loadJsPDF(){if(!jspdfP)jspdfP=loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js').then(()=>window.jspdf.jsPDF);return jspdfP;}
 /* per il PDF: ricompone dall'immagine di lavoro a 24 bit, JPEG q0.92, al lato richiesto (limitato dal ritaglio disponibile) */
-async function resultJpeg(it,px){const side=Math.min(px,cropRect(it).side);await ensureFonts();await badgeLogosReady;return composeItem(it,side,cfg()).toDataURL('image/jpeg',0.92);}
+async function resultJpeg(it,px){const side=Math.min(px,cropRect(it).side);await ensureFonts();await badgeLogosReady;
+  const src=composeItem(it,side,cfg()),c=document.createElement('canvas');c.width=c.height=side;const x=c.getContext('2d');
+  x.fillStyle='#fff';x.fillRect(0,0,side,side);x.beginPath();rrPath(x,0,0,side,side,side*PDF_RADIUS);x.clip();x.drawImage(src,0,0);
+  return c.toDataURL('image/jpeg',0.92);}
+const PDF_RADIUS=0.06; // raggio degli angoli arrotondati nella galleria, in frazione del lato
 function schoolYear(d=new Date()){const y=d.getMonth()>=8?d.getFullYear():d.getFullYear()-1;return `${y}/${String(y+1).slice(2)}`;}
 function drawNoPhoto(pdf,cx,cy,r){ // pittogramma del cartello: cerchio rosso barrato con fotocamera
   pdf.setDrawColor(196,59,51);pdf.setLineWidth(r*0.22);pdf.circle(cx,cy,r,'S');
@@ -1442,7 +1454,7 @@ async function buildGalleryPdf(){
   pdf.setFontSize(9);pdf.text(`${n} student${n===1?'e':'i'} · foto ${s}×${s} mm`,W-M,18.5,{align:'right'});
   for(let i=0;i<n;i++){const e=entries[i],c=i%cols,r=Math.floor(i/cols),x=x0+c*(s+gap),y=y0+r*(s+nameH+gap);
     pdf.addImage(await resultJpeg(e.it,Math.round(s*24)),'JPEG',x,y,s,s); // 24 px/mm ≈ 600 dpi a 47 mm, entro il lato del ritaglio (≤ 1000-1200 px)
-    pdf.setDrawColor(217,226,220);pdf.setLineWidth(0.3);pdf.rect(x,y,s,s);
+    pdf.setDrawColor(217,226,220);pdf.setLineWidth(0.3);pdf.roundedRect(x,y,s,s,s*PDF_RADIUS,s*PDF_RADIUS);
     pdf.setTextColor(...INK);pdf.setFont('helvetica','bold');pdf.setFontSize(s>=44?10.5:9);
     pdf.text(pdf.splitTextToSize(e.name,s)[0],x+s/2,y+s+5.4,{align:'center'});}
   // fascia di divieto (dal cartello "Vietato fotografare e filmare")
