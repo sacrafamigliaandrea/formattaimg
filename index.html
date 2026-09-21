@@ -69,6 +69,8 @@ main{max-width:1680px;margin:0 auto;padding:24px 32px 60px}
 .student{display:grid;grid-template-columns:1fr;gap:4px;font-size:12px;color:var(--ink-2)}
 .student select{width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;color:var(--ink);font-size:14.5px}
 .student select:disabled{opacity:.55}
+.student input{width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;color:var(--ink);font-size:14.5px}
+.student input.set{border-color:var(--accent-mid);font-weight:600;background:var(--accent-soft)}
 .student select.set{border-color:var(--accent-mid);font-weight:600;background:var(--accent-soft)}
 .student .cont{justify-self:start;padding:4px 9px;font-size:12px;margin-top:2px}
 .name{display:flex;align-items:center;gap:0}
@@ -1067,8 +1069,11 @@ function applyElenco(){
 }
 const currentClass=()=>elenco&&elenco.classes[$('#classe').value]||null;
 function fillStudentSelect(it){
-  const s=it.q.student,cls=currentClass();
-  if(!cls){s.disabled=true;s.innerHTML=`<option value="">${elenco?'Scegli prima la classe':'Nessun elenco caricato'}</option>`;it.student=null;s.classList.remove('set');return;}
+  const s=it.q.student,cls=currentClass(),free=it.q.free;
+  if(!cls){ // nessuna classe: campo libero, il nome scritto vale per il file
+    s.hidden=true;free.hidden=false;if(document.activeElement!==free)free.value=it.student||'';free.classList.toggle('set',!!it.student);
+    const lbl=it.el.querySelector('.studentLbl');if(lbl)lbl.textContent=elenco?'Nome studente (o scegli la classe nel pannello)':'Nome studente';return;}
+  s.hidden=false;free.hidden=true;const lbl=it.el.querySelector('.studentLbl');if(lbl)lbl.textContent='Assegna a uno studente';
   if(it.student&&!cls.students.includes(it.student))it.student=null;
   const taken=new Set(items.filter(o=>o!==it&&o.student).map(o=>o.student));
   s.disabled=false;s.innerHTML='<option value="">Non assegnato</option>'+cls.students.map(n=>`<option value="${n.replace(/"/g,'&quot;')}"${n===it.student?' selected':''}>${n}${taken.has(n)?' (già assegnato)':''}</option>`).join('');
@@ -1180,7 +1185,7 @@ function makeCard(it){
     <div class="result"><span class="ph">—</span></div>
     <div class="meta"><div class="name" title="${it.file.name.replace(/"/g,'&quot;')}"><span class="idx"></span><span class="fname">${it.file.name}</span><button type="button" class="remove" title="Rimuovi questa foto dall'elenco" aria-label="Rimuovi foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <span class="badge queued"><i class="dot"></i>In coda</span>
-      <label class="student"><span>Assegna a uno studente</span><select class="studentSel"></select></label>
+      <label class="student"><span class="studentLbl">Assegna a uno studente</span><select class="studentSel"></select><input type="text" class="studentFree" placeholder="Cognome Nome" autocomplete="off" hidden></label>
       <div class="swatches"><span>Casata</span>${FRAMES.map(([v,n])=>`<button type="button" class="sw${v==='none'?' none':''}" data-color="${v}" title="${n}" aria-label="Cornice ${n.toLowerCase()}" style="--sw:${v==='none'?'transparent':HOUSES[v].main}"></button>`).join('')}</div>
       <div class="details"></div>
       <div class="cardbtns">
@@ -1192,8 +1197,11 @@ function makeCard(it){
   it.el=el;it.q={preview:el.querySelector('.preview'),result:el.querySelector('.result'),badge:el.querySelector('.badge'),details:el.querySelector('.details'),btn:el.querySelector('.btn.dl'),share:el.querySelector('.btn.share')};
   it.q.btn.addEventListener('click',()=>{if(!it.result)return;const a=document.createElement('a');a.href=it.result.url;a.download=outName(it);a.click();});
   it.q.share.addEventListener('click',()=>{if(it.result)shareFiles([it]);});
-  it.q.student=el.querySelector('.studentSel');
+  it.q.student=el.querySelector('.studentSel');it.q.free=el.querySelector('.studentFree');
   it.q.student.addEventListener('change',()=>{assignTo(it,it.q.student.value||null);refreshNames();});
+  // senza elenco/classe: nome scritto a mano → nome del file cognome_nome.png
+  it.q.free.addEventListener('change',()=>{it.student=it.q.free.value.trim().replace(/\s+/g,' ')||null;refreshNames();});
+  it.q.free.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();it.q.free.blur();}});
   el.querySelector('.detach').addEventListener('click',()=>{assignTo(it,null);refreshNames();});
   el.querySelector('.remove').addEventListener('click',()=>removeItem(it));
   fillStudentSelect(it);
