@@ -6,14 +6,8 @@
 <title>Prepara le foto per il registro</title>
 <meta name="description" content="Scuola Sacra Famiglia: converte le foto in PNG quadrati a 72 dpi sotto i 200 KB, con bollino del campus. Tutto nel browser.">
 <meta name="theme-color" content="#C43B33">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Inter (solo UI) viene caricato DOPO l'evento load, così una rete lenta o un blocco di fonts.googleapis.com
-     non tiene la pagina "in caricamento" (rotellina infinita). Open Sans per il bollino è incorporato più sotto. -->
-<script>
-window.addEventListener('load',function(){var l=document.createElement('link');l.rel='stylesheet';
-  l.href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';document.head.appendChild(l);});
-</script>
+<!-- Nessun carattere da rete: l'interfaccia usa il carattere di sistema (San Francisco su Mac/iPhone). Una richiesta
+     a fonts.googleapis.com lasciata in sospeso dalla rete teneva la scheda "in caricamento" (rotellina infinita). -->
 <style id="fonts-inline">/* Open Sans (OFL) incorporato, sottoinsieme: alfabeto minuscolo, punto e trattino; font variabile pesi 300-800 */
 @font-face{font-family:'Open Sans';font-style:italic;font-weight:300 800;font-display:block;src:url(data:font/woff2;base64,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) format('woff2');unicode-range:U+2d-2e,U+61-7a}
 @font-face{font-family:'Open Sans';font-style:normal;font-weight:300 800;font-display:block;src:url(data:font/woff2;base64,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) format('woff2');unicode-range:U+2d-2e,U+61-7a}
@@ -38,13 +32,13 @@ html,body{margin:0;padding:0}
 /* solo scorrimento verticale: niente oscillazione laterale da trackpad, larghezza della barra sempre riservata */
 html{overflow-x:hidden;overscroll-behavior-x:none;scrollbar-gutter:stable}
 body{overscroll-behavior-x:none} /* niente overflow su body: renderebbe body contenitore di scorrimento e romperebbe la barra sticky */
-body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.45}
+body{font-family:-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.45}
 button,input,select{font:inherit}
 header{background:var(--red);color:#fff;padding:20px 32px;display:flex;align-items:center;gap:18px}
 /* marchio come nel logo originale: blocco "campus" e sotto "sacrafamiglia.education" (sacra regular, famiglia bold, .education bold corsivo) */
 header .brand{flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding-right:18px;border-right:1px solid rgba(255,255,255,.35)} /* scritta centrata sotto il blocco campus */
-header .wordmark{background:#fff;color:var(--red);font-family:"Open Sans",Inter,sans-serif;font-weight:700;font-size:22px;line-height:1;padding:9px 12px 11px;border-radius:6px;letter-spacing:-.01em}
-header .domain{font-family:"Open Sans",Inter,sans-serif;font-weight:400;font-size:13.5px;color:#fff;letter-spacing:-.01em;line-height:1}
+header .wordmark{background:#fff;color:var(--red);font-family:"Open Sans",-apple-system,system-ui,sans-serif;font-weight:700;font-size:22px;line-height:1;padding:9px 12px 11px;border-radius:6px;letter-spacing:-.01em}
+header .domain{font-family:"Open Sans",-apple-system,system-ui,sans-serif;font-weight:400;font-size:13.5px;color:#fff;letter-spacing:-.01em;line-height:1}
 header .domain b{font-weight:700}
 header .domain i{font-weight:700;font-style:italic;opacity:.92}
 header h1{margin:0;font-size:21px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
@@ -228,6 +222,16 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
 .slotHead .slotsw{display:inline-flex;gap:5px;margin-right:4px}
 .slotHead .slotsw .sw{width:18px;height:18px}
 .slot .card .swatches{display:none}
+
+/* pannello v3: colonne bilanciate, controlli accorpati in righe */
+.settings{grid-template-columns:1.05fr 1.15fr 1.05fr;gap:12px}
+.sg{gap:7px;padding:11px 12px 12px}
+.sg .three{display:grid;grid-template-columns:1.4fr 1fr .8fr;gap:8px}
+.sg .inline{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sg .inline select{flex:1 1 140px;min-width:0}
+.sg .small{line-height:1.35}
+@media (max-width:1100px){.settings{grid-template-columns:1fr 1fr}.sg:first-child{grid-column:1/-1}}
+@media (max-width:760px){.settings{grid-template-columns:1fr}.sg .three{grid-template-columns:1fr 1fr}.sg .three label:first-child{grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -255,24 +259,44 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
     <div class="settings">
       <section class="sg">
         <h3>Classe e lavoro</h3>
-        <label>Classe <select id="classe" disabled><option value="">Carica prima l'elenco studenti</option></select></label>
-        <div class="row">
-          <button type="button" class="btn ghost mini" id="loadListBtn">Carica elenco (xlsx o csv)</button>
-          <button type="button" class="btn ghost mini" id="clearListBtn" hidden>Rimuovi elenco</button>
+        <label>Classe
+          <span class="inline"><select id="classe" disabled><option value="">Carica prima l'elenco studenti</option></select><button type="button" class="btn ghost mini" id="loadListBtn" title="Carica l'elenco studenti (xlsx del registro o csv)">Carica elenco</button><button type="button" class="btn ghost mini" id="clearListBtn" hidden title="Rimuovi l'elenco da questo dispositivo">Rimuovi</button></span>
           <input type="file" id="listFile" class="sr" accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
-        </div>
+        </label>
         <span class="small" id="listInfo">Nessun elenco caricato: i file useranno il nome originale. L'elenco resta solo su questo dispositivo.</span>
-        <label>Lavori salvati su questo dispositivo <select id="works"><option value="">Nessun lavoro salvato</option></select></label>
-        <div class="row">
-          <button type="button" class="btn ghost mini" id="resumeBtn" disabled>Riprendi</button>
-          <button type="button" class="btn ghost mini" id="deleteWorkBtn" disabled>Elimina</button>
-        </div>
+        <label>Lavori salvati su questo dispositivo
+          <span class="inline"><select id="works"><option value="">Nessun lavoro salvato</option></select><button type="button" class="btn ghost mini" id="resumeBtn" disabled>Riprendi</button><button type="button" class="btn ghost mini" id="deleteWorkBtn" disabled>Elimina</button></span>
+        </label>
         <span class="small" id="saveInfo">Il lavoro della classe scelta si salva da solo a ogni modifica.</span>
       </section>
 
       <section class="sg">
-        <h3>Stile</h3>
-        <label>Bollino <select id="badgeStyle">
+        <h3>Cornice e bollino</h3>
+        <label>Casata predefinita per gli studenti senza casata
+          <span class="inline"><select id="frameColor">
+            <option value="none" selected>Nessuna</option>
+            <option value="aquilablu">Aquilablu</option>
+            <option value="querciaverde">Querciaverde</option>
+            <option value="cerogiallo">Cerogiallo</option>
+            <option value="tassorosso">Tassorosso</option>
+          </select><button type="button" class="btn ghost mini" id="frameAll" title="Assegna questa casata a tutti gli studenti della classe">Applica a tutta la classe</button></span>
+        </label>
+        <div class="two">
+          <label>Stile cornice <select id="frameStyle">
+              <option value="casata" selected>Casata: nome in alto, bordi sottili</option>
+              <option value="piatta">Piatta</option>
+              <option value="doppia">Doppia linea</option>
+              <option value="passepartout">Passe-partout</option>
+              <option value="arrotondata">Angoli arrotondati</option>
+            </select></label>
+          <label>Spessore <select id="frameWidth">
+          <option value="0.03">Sottile</option>
+          <option value="0.05">Media</option>
+          <option value="0.08" selected>Spessa</option>
+        </select></label>
+        </div>
+        <div class="three">
+          <label>Bollino <select id="badgeStyle">
           <option value="timbro">Campus: timbro in filigrana</option>
           <option value="tondo">Campus: bollino tondo</option>
           <option value="logo">Campus: logo completo</option>
@@ -281,7 +305,6 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
           <option value="martinengo">Logo Martinengo (tondo)</option>
           <option value="none" selected>Nessuno</option>
         </select></label>
-        <div class="two">
           <label>Posizione <select id="badgePos">
           <option value="br" selected>Basso destra</option>
           <option value="bl">Basso sinistra</option>
@@ -294,29 +317,10 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
           <option value="0.33">Grande</option>
         </select></label>
         </div>
-        <label>Casata predefinita per gli studenti senza casata <span class="inline"><select id="frameColor">
-            <option value="none" selected>Nessuna</option>
-            <option value="aquilablu">Aquilablu</option>
-            <option value="querciaverde">Querciaverde</option>
-            <option value="cerogiallo">Cerogiallo</option>
-            <option value="tassorosso">Tassorosso</option>
-          </select><button type="button" class="btn ghost mini" id="frameAll" title="Assegna questa casata a tutti gli studenti della classe">Applica a tutta la classe</button></span></label>
-        <div class="two">
-          <label>Stile cornice
-            <select id="frameStyle">
-              <option value="casata" selected>Casata: nome in alto, bordi sottili</option>
-              <option value="piatta">Piatta</option>
-              <option value="doppia">Doppia linea</option>
-              <option value="passepartout">Passe-partout</option>
-              <option value="arrotondata">Angoli arrotondati</option>
-            </select>
-          </label>
-          <label>Spessore <select id="frameWidth">
-          <option value="0.03">Sottile</option>
-          <option value="0.05">Media</option>
-          <option value="0.08" selected>Spessa</option>
-        </select></label>
-        </div>
+      </section>
+
+      <section class="sg">
+        <h3>Foto e uscita</h3>
         <label>Sfondo dietro il soggetto <span class="inline"><select id="bgMode">
             <option value="none">Originale</option>
             <optgroup label="Ritratto (sfondo originale sfocato)">
@@ -352,7 +356,8 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
             </optgroup>
             <option value="custom">Personalizzato (colore piatto)</option>
           </select><input type="color" id="bgCustom" value="#F4EBDD" title="Colore personalizzato" aria-label="Colore di sfondo personalizzato" disabled></span></label>
-        <label>Filtro (tutte le foto) <select id="filter">
+        <div class="two">
+          <label>Filtro (tutte le foto) <select id="filter">
           <option value="none">Nessuno</option>
           <option value="auto">Auto livelli</option>
           <option value="vivido" selected>Vivido</option>
@@ -363,10 +368,12 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
           <option value="bn">Bianco e nero</option>
           <option value="seppia">Seppia</option>
         </select></label>
-      </section>
-
-      <section class="sg">
-        <h3>Uscita</h3>
+          <label>Ritaglio iniziale <select id="cropDefault">
+          <option value="0.5" selected>Centrato</option>
+          <option value="0">Inizio (alto / sinistra)</option>
+          <option value="1">Fine (basso / destra)</option>
+        </select></label>
+        </div>
         <div class="two">
           <label>Peso massimo (KB) <input type="number" id="limitKB" min="30" max="5000" step="10" value="200"></label>
           <label>Lato massimo (px) <select id="maxSide">
@@ -376,12 +383,7 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
           <option value="1200">1200</option>
         </select></label>
         </div>
-        <label>Ritaglio iniziale <select id="cropDefault">
-          <option value="0.5" selected>Centrato</option>
-          <option value="0">Inizio (alto / sinistra)</option>
-          <option value="1">Fine (basso / destra)</option>
-        </select></label>
-        <p class="small">PNG quadrato a 72 dpi, nome <b>cognome_nome.png</b>. Le impostazioni di stile si applicano subito a tutte le foto caricate; "Cornice predefinita" e "Ritaglio iniziale" valgono per le foto nuove. Trascina l'anteprima di una foto per spostare il ritaglio. Lo sfondo dietro il soggetto usa un modello di riconoscimento scaricato alla prima attivazione.</p>
+        <p class="small">PNG quadrato a 72 dpi, nome <b>cognome_nome.png</b>. Le modifiche si applicano subito alle foto caricate; casata predefinita e ritaglio iniziale valgono per le foto nuove. Trascina l'anteprima per spostare il ritaglio.</p>
       </section>
     </div>
   </section>
@@ -579,6 +581,7 @@ function workerMain(){
   }
 
   /* --- ricerca del risultato sotto il limite --- */
+  postMessage({ready:true});
   self.onmessage=async e=>{
     const {id,data,side,limit,minSide}=e.data;
     try{
@@ -601,17 +604,30 @@ function workerMain(){
 const HAS_CS=typeof CompressionStream==='function';
 const pool=(()=>{
   if(!HAS_CS||typeof Worker!=='function')return null;
-  const url=URL.createObjectURL(new Blob(['('+workerMain.toString()+')()'],{type:'text/javascript'}));
+  const code=new Blob(['('+workerMain.toString()+')()'],{type:'text/javascript'});
   const n=Math.max(1,Math.min(4,(navigator.hardwareConcurrency||2)-1));
-  const workers=[],queue=[],pending=new Map();let seq=0;
-  try{
-    for(let i=0;i<n;i++){const w=new Worker(url);w.busy=false;
-      w.onmessage=ev=>{const p=pending.get(ev.data.id);pending.delete(ev.data.id);w.busy=false;p&&p(ev.data);pump();};
-      w.onerror=ev=>{w.busy=false;pump();console.error(ev);};
-      workers.push(w);}
-  }catch(e){console.warn('Worker non disponibili (es. pagina aperta da file://), uso il fallback su canvas',e);return null;}
-  function pump(){const w=workers.find(x=>!x.busy);if(!w||!queue.length)return;const job=queue.shift();w.busy=true;pending.set(job.msg.id,job.resolve);w.postMessage(job.msg,[job.msg.data]);pump();}
-  return {run(msg){msg.id=++seq;return new Promise(resolve=>{queue.push({msg,resolve});pump();});},size:n};
+  let workers=[],idleTimer=null,url=null,ready=0,seq=0;const queue=[],pending=new Map();
+  /* worker creati al bisogno e chiusi quando la coda resta vuota 1,5 s: un worker vivo può tenere accesa
+     la barra di caricamento del browser (Safari) anche a lavoro finito. L'URL blob viene rilasciato appena pronti. */
+  function spawn(){
+    if(workers.length)return true;
+    try{url=URL.createObjectURL(code);ready=0;
+      for(let i=0;i<n;i++){const w=new Worker(url);w.busy=false;
+        w.onmessage=ev=>{if(ev.data&&ev.data.ready){if(++ready===n&&url){URL.revokeObjectURL(url);url=null;}return;}
+          const p=pending.get(ev.data.id);pending.delete(ev.data.id);w.busy=false;p&&p(ev.data);pump();};
+        w.onerror=ev=>{w.busy=false;pump();console.error(ev);};
+        workers.push(w);}
+      return true;
+    }catch(e){console.warn('Worker non disponibili (es. pagina aperta da file://), uso il fallback su canvas',e);workers=[];return false;}
+  }
+  function pump(){
+    if(!queue.length){
+      if(workers.length&&!workers.some(w=>w.busy)){clearTimeout(idleTimer);idleTimer=setTimeout(()=>{if(!queue.length&&!workers.some(w=>w.busy)){for(const w of workers)w.terminate();workers=[];if(url){URL.revokeObjectURL(url);url=null;}}},1500);}
+      return;}
+    const w=workers.find(x=>!x.busy);if(!w)return;clearTimeout(idleTimer);
+    const job=queue.shift();w.busy=true;pending.set(job.msg.id,job.resolve);w.postMessage(job.msg,[job.msg.data]);pump();
+  }
+  return {run(msg){msg.id=++seq;return new Promise((resolve,reject)=>{if(!spawn())return reject(new Error('worker'));queue.push({msg,resolve});pump();});},size:n,active:()=>workers.length};
 })();
 
 /* ---------------------- fallback senza worker: canvas.toBlob + pHYs ---------------------- */
@@ -1262,9 +1278,9 @@ async function encodeItem(it){
   it.encodedOffset=it.offset;
   let res;
   try{
-    if(pool){const img=x.getImageData(0,0,side0,side0);const m=await pool.run({data:img.data.buffer,side:side0,limit:c.limit,minSide});
-      if(!m.ok)throw new Error(m.error);res=m;}
-    else res=await encodeFallback(cv,c.limit,minSide);
+    let m=null;
+    if(pool){const img=x.getImageData(0,0,side0,side0);try{m=await pool.run({data:img.data.buffer,side:side0,limit:c.limit,minSide});}catch(_){m=null;}}
+    if(m){if(!m.ok)throw new Error(m.error);res=m;}else res=await encodeFallback(cv,c.limit,minSide);
     if(it.result)URL.revokeObjectURL(it.result.url);
     const blob=new Blob([res.bytes],{type:'image/png'});
     it.result={blob,url:URL.createObjectURL(blob),side:res.side,bits:res.bits,over:res.over,bytes:res.bytes.length};
@@ -1530,7 +1546,7 @@ els.zip.addEventListener('click',async()=>{
 });
 
 if(!HAS_CS){els.progText.textContent='Browser senza CompressionStream: PNG solo a 24 bit, lato ridotto per stare nel limite.';}
-window.__app={addFiles,items,cfg,buildZip};
+window.__app={addFiles,items,cfg,buildZip,pool};
 </script>
 </body>
 </html>
