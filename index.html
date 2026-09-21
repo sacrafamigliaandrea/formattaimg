@@ -937,10 +937,24 @@ function renderRoster(){
   if(cls){const abs=absentSet();
     cls.students.forEach((n,k)=>{const el=document.createElement('article');el.className='slot';el.dataset.name=n;
       el.innerHTML=`<div class="slotHead"><span class="idx">${k+1}</span><span class="sname">${n}</span><label class="absent"><input type="checkbox"${abs.has(n)?' checked':''}> Assente</label><button type="button" class="btn ghost mini addPhoto">Aggiungi foto</button></div><div class="slotBody"><div class="slotEmpty">Nessuna foto</div></div>`;
-      el.querySelector('.absent input').addEventListener('change',e=>{if(e.target.checked)abs.add(n);else abs.delete(n);placeItems();scheduleSave();});
+      el.querySelector('.absent input').addEventListener('change',e=>{const on=e.target.checked;if(on)abs.add(n);else abs.delete(n);shiftForAbsence(cls,k,on);refreshNames();});
       el.querySelector('.addPhoto').addEventListener('click',()=>{slotTarget=n;$('#slotFile').click();});
       ro.appendChild(el);});}
   placeItems();
+}
+/* Spunta "Assente" dopo l'abbinamento: se il segnaposto ha già una foto (arrivata per errore dall'abbinamento in
+   ordine), quella foto e tutte le successive scalano di uno verso il basso, ai presenti che seguono.
+   Togliere la spunta a un segnaposto vuoto fa risalire di uno le foto successive. Negli altri casi nessuno spostamento. */
+function shiftForAbsence(cls,k,on){
+  const idx=new Map(cls.students.map((n,i)=>[n,i])),abs=absentSet();
+  const has=items.some(it=>it.student===cls.students[k]);
+  if(on?!has:has)return;
+  const from=on?k:k+1;
+  const group=items.filter(it=>it.student&&idx.get(it.student)>=from).sort((a,b)=>idx.get(a.student)-idx.get(b.student));
+  if(!group.length)return;
+  const targets=cls.students.slice(on?k+1:k).filter(n=>!abs.has(n));
+  for(const it of group)it.student=null;
+  group.forEach((it,i)=>{it.student=targets[i]||null;});
 }
 $('#slotFile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';const t=slotTarget;slotTarget=null;if(f&&t)addFiles([f],{target:t});});
 function assignTo(it,name){if(name)for(const o of items)if(o!==it&&o.student===name)o.student=null;it.student=name||null;}
@@ -999,7 +1013,7 @@ function makeCard(it){
       <div class="details"></div>
       <div class="cardbtns">
         <button class="btn dl" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 19h16"/></svg>Scarica PNG</button>
-        <button type="button" class="btn ghost detach" title="Togli la foto da questo studente: resta tra le foto non assegnate">Stacca</button>
+        <button type="button" class="btn ghost detach" title="La foto non è di questo studente: la toglie dal segnaposto e la mette tra le foto non assegnate, senza cancellarla">Togli dallo studente</button>
         <button class="btn ghost share" disabled ${CAN_SHARE?'':'hidden'}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>Salva nella galleria</button>
       </div>
     </div>`;
