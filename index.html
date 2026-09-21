@@ -759,19 +759,20 @@ function drawBadge(ctx,S,cfg,inset=0){
     ctx.drawImage(im,cx-w/2,cy-h/2,w,h);
     ctx.restore();return;
   }
-  if(cfg.style==='timbro'){ // timbro in filigrana: solo contorno, inchiostro bianco semitrasparente, nessun riempimento
+  if(cfg.style==='timbro'){ // timbro in filigrana: cerchio bianco sottile, "campus" e sotto "sacrafamiglia" come nel logo, nessun riempimento
     const d=S*cfg.size,r=d/2,cx=right?S-mx-r:mx+r,cy=bottom?S-my-r:my+r;
     ctx.save();ctx.translate(cx,cy);ctx.rotate(-14*Math.PI/180);ctx.translate(-cx,-cy); // inclinato a sinistra come un timbro sul passaporto
-    ctx.globalAlpha=0.9;ctx.strokeStyle='#fff';ctx.fillStyle='#fff';ctx.lineCap='round';
+    ctx.globalAlpha=0.92;ctx.strokeStyle='#fff';ctx.fillStyle='#fff';
     ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=r*0.10; // alone scuro per la leggibilità sulle foto chiare
-    ctx.lineWidth=r*0.07;ctx.beginPath();ctx.arc(cx,cy,r-ctx.lineWidth/2,0,Math.PI*2);ctx.stroke();
-    ctx.lineWidth=r*0.025;ctx.beginPath();ctx.arc(cx,cy,r*0.76,0,Math.PI*2);ctx.stroke();
-    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.lineWidth=Math.max(1.5,r*0.04);ctx.beginPath();ctx.arc(cx,cy,r-ctx.lineWidth/2,0,Math.PI*2);ctx.stroke();
+    ctx.textAlign='center';ctx.textBaseline='alphabetic';
     const fit=(txt,font,target)=>{ctx.font=font(100);return 100*target/ctx.measureText(txt).width;};
-    const fs=fit('campus',v=>`700 ${v}px "Open Sans", sans-serif`,r*1.15);ctx.font=`700 ${fs}px "Open Sans", sans-serif`;ctx.fillText('campus',cx,cy+fs*0.02);
-    const fs2=r*0.135;ctx.font=`italic 700 ${fs2}px "Open Sans", sans-serif`;
-    arcText(ctx,'sacrafamiglia.education',cx,cy,r*0.87,fs2*0.06);
-    ctx.font=`700 ${fs2}px "Open Sans", sans-serif`;ctx.fillText('-',cx-r*0.87,cy);ctx.fillText('-',cx+r*0.87,cy);
+    const fs=fit('campus',v=>`700 ${v}px "Open Sans", sans-serif`,d*0.66);ctx.font=`700 ${fs}px "Open Sans", sans-serif`;
+    ctx.fillText('campus',cx,cy+fs*0.12);
+    // "sacrafamiglia": sacra in tondo, famiglia in grassetto, come nel logo; larghezza adattata al disco
+    const parts=[['sacra','400'],['famiglia','700']];const wAt=v=>parts.reduce((a,[t,w])=>{ctx.font=`${w} ${v}px "Open Sans", sans-serif`;return a+ctx.measureText(t).width;},0);
+    const fs2=Math.min(100*d*0.56/wAt(100),fs*0.42);let x2=cx-wAt(fs2)/2;const y2=cy+fs*0.12+fs2*1.45;ctx.textAlign='left';
+    for(const [t,w] of parts){ctx.font=`${w} ${fs2}px "Open Sans", sans-serif`;ctx.fillText(t,x2,y2);x2+=ctx.measureText(t).width;}
     ctx.restore();return;
   }
   if(cfg.style==='tondo'||cfg.style==='lasacra'){ // disco rosso con parola bianca in stile campus
