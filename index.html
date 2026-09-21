@@ -1287,7 +1287,7 @@ async function encodeItem(it){
     it.status='done';
     it.q.result.innerHTML=`<img alt="Anteprima PNG finale" src="${it.result.url}">`;
     setStatus(it,res.over?'warn':'done',res.over?'Sopra il limite anche al minimo':'Pronto');
-    const rows=[['Scatto',it.exifTime?fmtTime(it.exifTime):'non nei metadati (ordine per nome)'],['Immagine',`${res.side} × ${res.side} px · ${res.bits===24?'24 bit':'8 bit'} · ${fmtKB(res.bytes.length)} · 72 dpi`]];
+    const rows=[['Scatto',it.exifTime?fmtTime(it.exifTime):'non nei metadati'],['Immagine',`${res.side} × ${res.side} px · ${res.bits===24?'24 bit':'8 bit'} · ${fmtKB(res.bytes.length)} · 72 dpi`]];
     if(bgOn)rows.push(['Sfondo',it.mask?$('#bgMode').selectedOptions[0].textContent:'non sostituito ('+it.segError+')']);
     if(c.filter!=='none')rows.push(['Filtro',$('#filter').selectedOptions[0].textContent]);
     rows.push(['File',outName(it)]);setDetails(it,rows);
@@ -1323,13 +1323,14 @@ async function addFiles(list,opts={}){
   }
   refreshNames();pumpDecode();
 }
-/* Ordine progressivo delle foto. Safari su iPhone può consegnare le foto della libreria con nomi generici
-   uguali ("image.jpeg"), quindi il nome non basta: 1) ora di scatto EXIF, 2) nome file con confronto
-   numerico naturale (IMG_0009 < IMG_0010), 3) ordine di selezione. Le card vengono riordinate nel DOM
+/* Ordine progressivo delle foto (criteri stabiliti da Andrea, 21-09-2026): 1) nome del file con confronto
+   numerico naturale (IMG_0009 < IMG_0010); 2) a parità di nome (Safari su iPhone può consegnare nomi generici
+   uguali, "image.jpeg") l'ora di scatto EXIF o la data del file; 3) ordine di selezione. Le card vengono riordinate nel DOM
    e la coda di elaborazione segue lo stesso ordine. */
 const natural=new Intl.Collator('it',{numeric:true,sensitivity:'base'});
 function sortItems(){
-  items.sort((a,b)=>(a.time-b.time)||natural.compare(a.file.name,b.file.name)||a.id-b.id);
+  // 1) nome del file con confronto numerico naturale (IMG_0009 < IMG_0010); 2) ora di scatto EXIF / data file; 3) ordine di selezione
+  items.sort((a,b)=>natural.compare(a.file.name,b.file.name)||(a.time-b.time)||a.id-b.id);
   items.forEach((it,k)=>{it.el.querySelector('.idx').textContent=k+1;});
   placeItems();
 }
