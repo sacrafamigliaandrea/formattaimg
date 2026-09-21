@@ -273,7 +273,8 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
       <section class="sg">
         <h3>Stile</h3>
         <label>Bollino <select id="badgeStyle">
-          <option value="tondo" selected>Campus: bollino tondo</option>
+          <option value="timbro" selected>Campus: timbro in filigrana</option>
+          <option value="tondo">Campus: bollino tondo</option>
           <option value="logo">Campus: logo completo</option>
           <option value="lasacra">Lasacra: bollino tondo</option>
           <option value="scuola">Logo scuola (tondo)</option>
@@ -758,6 +759,21 @@ function drawBadge(ctx,S,cfg,inset=0){
     ctx.drawImage(im,cx-w/2,cy-h/2,w,h);
     ctx.restore();return;
   }
+  if(cfg.style==='timbro'){ // timbro in filigrana: solo contorno, inchiostro bianco semitrasparente, nessun riempimento
+    const d=S*cfg.size,r=d/2,cx=right?S-mx-r:mx+r,cy=bottom?S-my-r:my+r;
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(-14*Math.PI/180);ctx.translate(-cx,-cy); // inclinato a sinistra come un timbro sul passaporto
+    ctx.globalAlpha=0.9;ctx.strokeStyle='#fff';ctx.fillStyle='#fff';ctx.lineCap='round';
+    ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=r*0.10; // alone scuro per la leggibilità sulle foto chiare
+    ctx.lineWidth=r*0.07;ctx.beginPath();ctx.arc(cx,cy,r-ctx.lineWidth/2,0,Math.PI*2);ctx.stroke();
+    ctx.lineWidth=r*0.025;ctx.beginPath();ctx.arc(cx,cy,r*0.76,0,Math.PI*2);ctx.stroke();
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    const fit=(txt,font,target)=>{ctx.font=font(100);return 100*target/ctx.measureText(txt).width;};
+    const fs=fit('campus',v=>`700 ${v}px "Open Sans", sans-serif`,r*1.15);ctx.font=`700 ${fs}px "Open Sans", sans-serif`;ctx.fillText('campus',cx,cy+fs*0.02);
+    const fs2=r*0.135;ctx.font=`italic 700 ${fs2}px "Open Sans", sans-serif`;
+    arcText(ctx,'sacrafamiglia.education',cx,cy,r*0.87,fs2*0.06);
+    ctx.font=`700 ${fs2}px "Open Sans", sans-serif`;ctx.fillText('-',cx-r*0.87,cy);ctx.fillText('-',cx+r*0.87,cy);
+    ctx.restore();return;
+  }
   if(cfg.style==='tondo'||cfg.style==='lasacra'){ // disco rosso con parola bianca in stile campus
     const word=cfg.style==='lasacra'?'lasacra':'campus';
     const d=S*cfg.size,r=d/2,cx=right?S-mx-r:mx+r,cy=bottom?S-my-r:my+r;
@@ -792,6 +808,14 @@ function drawBadge(ctx,S,cfg,inset=0){
   ctx.fillText('campus',x0+pad+redW/2,y0+pad+redH*0.5+fs*0.27);
   ctx.textAlign='left';let x=x0+pad;const yb=y0+pad+redH+redW*0.035+fsLine*0.82;
   for(const [t,w,col] of line){ctx.font=`${w} ${fsLine}px "Open Sans", sans-serif`;ctx.fillStyle=col;ctx.fillText(t,x,yb);x+=ctx.measureText(t).width;}
+  ctx.restore();
+}
+/* testo lungo un arco, centrato sull'alto del cerchio (ogni carattere ruotato sulla tangente) */
+function arcText(ctx,text,cx,cy,radius,kerning){
+  const chars=[...text],widths=chars.map(ch=>ctx.measureText(ch).width),total=widths.reduce((a,b)=>a+b,0)+kerning*(chars.length-1);
+  let ang=-(total/radius)/2; // angolo misurato dall'alto in senso orario: il testo resta centrato sulle ore 12
+  ctx.save();ctx.translate(cx,cy);
+  chars.forEach((ch,i)=>{const w=widths[i];ang+=(w/2)/radius;ctx.save();ctx.rotate(ang);ctx.translate(0,-radius);ctx.fillText(ch,0,0);ctx.restore();ang+=(w/2+kerning)/radius;});
   ctx.restore();
 }
 function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
