@@ -32,6 +32,9 @@ window.addEventListener('load',function(){var l=document.createElement('link');l
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;padding:0}
+/* solo scorrimento verticale: niente oscillazione laterale da trackpad, larghezza della barra sempre riservata */
+html{overflow-x:hidden;overscroll-behavior-x:none;scrollbar-gutter:stable}
+body{overflow-x:hidden;overscroll-behavior-x:none}
 body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.45}
 button,input,select{font:inherit}
 header{background:var(--red);color:#fff;padding:20px 32px;display:flex;align-items:center;gap:18px}
@@ -84,7 +87,7 @@ dialog p{margin:6px 0;font-size:14px;color:var(--ink-2)}
 /* ---- segnaposto per studente (elenco della classe) ---- */
 .rosterBar{margin-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 16px;font-size:13px;color:var(--ink-2)}
 .rosterBar b{color:var(--ink)}
-.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(600px,1fr));gap:16px;margin-top:12px}
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(600px,100%),1fr));gap:16px;margin-top:12px}
 .slot{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .slot.has{border-color:var(--accent-mid)}
 .slot.isAbsent{background:#F3F5F4}
@@ -122,8 +125,9 @@ dialog p{margin:6px 0;font-size:14px;color:var(--ink-2)}
 
 /* ---- griglia card ---- */
 /* card larghe almeno 600 px così la colonna delle informazioni (studente, file) ha ≥ 220 px anche con 2-3 colonne su 22" */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(600px,1fr));gap:16px;margin-top:20px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:grid;grid-template-columns:200px 150px minmax(200px,1fr);gap:14px;align-items:start}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(600px,100%),1fr));gap:16px;margin-top:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:grid;grid-template-columns:200px 150px minmax(0,1fr);gap:14px;align-items:start;min-width:0}
+.card>*{min-width:0}
 .card.err{border-color:#E8CE9A}
 .preview{position:relative;width:200px;height:200px;background:#EEF2EF;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .preview canvas{display:block;touch-action:none;cursor:grab}
@@ -153,7 +157,7 @@ dialog p{margin:6px 0;font-size:14px;color:var(--ink-2)}
 .errmsg{font-size:13px;color:var(--amber);background:var(--amber-soft);border-radius:8px;padding:8px 10px}
 .empty{margin-top:40px;text-align:center;color:var(--ink-3);font-size:14px}
 footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.sr{position:absolute;left:0;top:0;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap} /* input nascosti ancorati all'origine: non allargano la pagina */
 @media (max-width:1100px){.panel{grid-template-columns:1fr}.settings{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}}
 @media (max-width:700px){.grid{grid-template-columns:1fr}}
 /* ---- smartphone ---- */
@@ -297,11 +301,22 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
         <span class="inline">
           <select id="bgMode">
             <option value="none" selected>Originale</option>
-            <optgroup label="Chiari (fototessera)">
+            <optgroup label="Ritratto (sfondo originale sfocato)">
+              <option value="blur">Ritratto sfocato</option>
+              <option value="blurlight">Ritratto chiaro</option>
+            </optgroup>
+            <optgroup label="Studio (sfumatura pronta)">
+              <option value="studio:grigio">Studio grigio</option>
+              <option value="studio:azzurro">Studio azzurro</option>
+              <option value="studio:salvia">Studio salvia</option>
+              <option value="studio:avorio">Studio avorio</option>
+              <option value="studio:pesca">Studio pesca</option>
+              <option value="studio:lilla">Studio lilla</option>
+            </optgroup>
+            <optgroup label="Colore piatto chiaro">
               <option value="#FFFFFF">Bianco</option>
               <option value="#F6F1E7">Avorio</option>
               <option value="#E6E8EA">Grigio chiaro</option>
-              <option value="#C9CFD4">Grigio perla</option>
               <option value="#CFE3F5">Azzurro</option>
               <option value="#A9CDEC">Celeste</option>
               <option value="#DCEFE3">Verde chiaro</option>
@@ -311,23 +326,13 @@ footer{text-align:center;font-size:12px;color:var(--ink-3);padding:20px}
               <option value="#F7D6DC">Rosa cipria</option>
               <option value="#E3D8F1">Lilla</option>
             </optgroup>
-            <optgroup label="Pieni">
+            <optgroup label="Colore piatto pieno (come le cornici)">
               <option value="#C43B33">Rosso</option>
               <option value="#123E90">Blu</option>
               <option value="#F2C230">Giallo</option>
               <option value="#1B6D3F">Verde</option>
-              <option value="#E07A2F">Arancio</option>
-              <option value="#7A4E9E">Viola</option>
-              <option value="#1E8C9C">Petrolio</option>
             </optgroup>
-            <optgroup label="Scuri">
-              <option value="#8A97A3">Grigio medio</option>
-              <option value="#2F3A44">Antracite</option>
-              <option value="#0B2A5C">Blu notte</option>
-              <option value="#14532F">Verde bosco</option>
-              <option value="#5A2A2A">Bordeaux scuro</option>
-            </optgroup>
-            <option value="custom">Personalizzato</option>
+            <option value="custom">Personalizzato (colore piatto)</option>
           </select>
           <input type="color" id="bgCustom" value="#F4EBDD" title="Colore personalizzato" aria-label="Colore di sfondo personalizzato" disabled>
         </span>
@@ -770,6 +775,31 @@ function applyFilter(img,name){
   }
 }
 
+/* ---------------------- sfondi dietro il soggetto: set pronti ----------------------
+   "Ritratto": sfondo originale sfocato (riduzione a 1/14 e ingrandimento bilineare, due passate), desaturato del
+   35 %, poi scurito del 12 % con vignettatura (blur) oppure schiarito verso il bianco del 35 % (blurlight).
+   "Studio": sfumatura radiale con coppie di colori predefinite (centro chiaro dietro la testa, bordo più pieno).
+   Altrimenti colore piatto. In tutti i casi il soggetto ritagliato viene disegnato sopra. */
+const STUDIO={grigio:['#F4F5F6','#B4BAC1'],azzurro:['#E8F2FB','#93BADF'],salvia:['#E9F2EC','#97BFA6'],avorio:['#FCF8F0','#D6C9AC'],pesca:['#FDEEE3','#E6B394'],lilla:['#F1ECF8','#B8A3D6']};
+function paintBackground(x,t,inner,bg,it,r){
+  if(bg.mode==='blur'||bg.mode==='blurlight'){
+    const src=document.createElement('canvas');src.width=src.height=inner;const sx=src.getContext('2d');sx.imageSmoothingQuality='high';
+    sx.drawImage(it.work,r.sx,r.sy,r.side,r.side,0,0,inner,inner);
+    for(let pass=0;pass<2;pass++){const sz=Math.max(6,Math.round(inner/14)),small=document.createElement('canvas');small.width=small.height=sz;
+      const smx=small.getContext('2d');smx.imageSmoothingQuality='high';smx.drawImage(src,0,0,sz,sz);sx.clearRect(0,0,inner,inner);sx.drawImage(small,0,0,inner,inner);}
+    const id=sx.getImageData(0,0,inner,inner),d=id.data,light=bg.mode==='blurlight';
+    for(let i=0;i<d.length;i+=4){let rr=d[i],g=d[i+1],b=d[i+2];const l=rr*.299+g*.587+b*.114;rr=l+(rr-l)*.65;g=l+(g-l)*.65;b=l+(b-l)*.65;
+      if(light){rr+=(255-rr)*.35;g+=(255-g)*.35;b+=(255-b)*.35;}else{rr*=.88;g*=.88;b*=.88;}d[i]=rr;d[i+1]=g;d[i+2]=b;}
+    sx.putImageData(id,0,0);x.drawImage(src,t,t);
+    if(!light){const v=x.createRadialGradient(t+inner/2,t+inner*0.45,inner*0.35,t+inner/2,t+inner/2,inner*0.8);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,0.22)');x.fillStyle=v;x.fillRect(t,t,inner,inner);}
+    return;
+  }
+  if(bg.mode.startsWith('studio:')){const [c0,c1]=STUDIO[bg.mode.slice(7)]||STUDIO.grigio;
+    const g=x.createRadialGradient(t+inner*0.5,t+inner*0.38,inner*0.04,t+inner*0.5,t+inner*0.46,inner*0.8);g.addColorStop(0,c0);g.addColorStop(1,c1);
+    x.fillStyle=g;x.fillRect(t,t,inner,inner);return;}
+  x.fillStyle=bg.color;x.fillRect(t,t,inner,inner);
+}
+
 /* ---------------------- sfondo uniforme: segmentazione del soggetto (MediaPipe, lazy) ----------------------
    Modello "selfie segmenter" (persona vs sfondo). Il ritaglio (canvas con alfa) viene calcolato una volta
    per foto a risoluzione di lavoro e riusato a ogni ri-encoding; cambiare colore di sfondo non rilancia il modello. */
@@ -1093,7 +1123,7 @@ async function encodeItem(it){
   if(bgOn&&it.mask){const ms=it.mask.width/it.work.width;tx.globalCompositeOperation='destination-in';
     tx.drawImage(it.mask,r.sx*ms,r.sy*ms,r.side*ms,r.side*ms,0,0,inner,inner);tx.globalCompositeOperation='source-over';}
   if(c.filter!=='none'){const id=tx.getImageData(0,0,inner,inner);applyFilter(id,c.filter);tx.putImageData(id,0,0);}
-  if(bgOn){x.fillStyle=c.bg.color;x.fillRect(t,t,inner,inner);}
+  if(bgOn)paintBackground(x,t,inner,c.bg,it,r);
   x.drawImage(tmp,t,t);
   drawFrame(x,side0,frame);drawBadge(x,side0,c.badge,t);
   it.encodedOffset=it.offset;
@@ -1109,7 +1139,7 @@ async function encodeItem(it){
     it.q.result.innerHTML=`<img alt="Anteprima PNG finale" src="${it.result.url}">`;
     setStatus(it,res.over?'warn':'done',res.over?'Sopra il limite anche al minimo':'Pronto');
     const rows=[['Scatto',it.exifTime?fmtTime(it.exifTime):'non nei metadati (ordine per nome)'],['Immagine',`${res.side} × ${res.side} px · ${res.bits===24?'24 bit':'8 bit'} · ${fmtKB(res.bytes.length)} · 72 dpi`]];
-    if(bgOn)rows.push(['Sfondo',it.mask?'uniforme':'non sostituito ('+it.segError+')']);
+    if(bgOn)rows.push(['Sfondo',it.mask?$('#bgMode').selectedOptions[0].textContent:'non sostituito ('+it.segError+')']);
     if(c.filter!=='none')rows.push(['Filtro',$('#filter').selectedOptions[0].textContent]);
     rows.push(['File',outName(it)]);setDetails(it,rows);
     it.q.btn.disabled=false;it.q.share.disabled=false;scheduleSave();
