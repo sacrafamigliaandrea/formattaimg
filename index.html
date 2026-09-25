@@ -1037,9 +1037,9 @@ function gridToClasses(rows){
     const a=cell(r,0);
     if(a&&!/^classe\b/i.test(a)&&a!=='n.'&&!/^\d+$/.test(a)&&row.filter(x=>x).length===1)section=a.split(/[—–-]/)[0].trim().toLowerCase().replace(/^./,ch=>ch.toUpperCase());
     for(let c=0;c<row.length;c++){const v=row[c];const m=v&&v.match(/^classe\s+(.+)$/i);if(!m)continue;
-      const students=[];let j=r+1;if(/cognome/i.test(cell(j,c+1)))j++;
-      for(;j<rows.length&&cell(j,c+1);j++){if(/^classe\b/i.test(cell(j,c)))break;students.push(cell(j,c+1));}
-      if(students.length)classes.push({label:(section?section+' ':'')+m[1].trim(),students});}
+      const students=[],numbers=[];let j=r+1;if(/cognome/i.test(cell(j,c+1)))j++;
+      for(;j<rows.length&&cell(j,c+1);j++){if(/^classe\b/i.test(cell(j,c)))break;students.push(cell(j,c+1));const num=parseInt(cell(j,c),10);numbers.push(isNaN(num)?students.length:num);} // colonna "n." = numero di registro
+      if(students.length)classes.push({label:(section?section+' ':'')+m[1].trim(),students,numbers});}
   }
   return classes;
 }
@@ -1068,6 +1068,7 @@ function applyElenco(){
   renderRoster();
 }
 const currentClass=()=>elenco&&elenco.classes[$('#classe').value]||null;
+const regNum=(cls,i)=>(cls.numbers&&cls.numbers[i])||i+1; // numero di registro (colonna "n." dell'elenco), altrimenti posizione
 function fillStudentSelect(it){
   const s=it.q.student,cls=currentClass(),free=it.q.free;
   if(!cls){ // nessuna classe: campo libero, il nome scritto vale per il file
@@ -1110,7 +1111,7 @@ function renderRoster(){
   const cls=currentClass(),ro=$('#roster');ro.innerHTML='';$('#rosterBar').hidden=!cls;
   if(cls){const abs=absentSet();
     cls.students.forEach((n,k)=>{const el=document.createElement('article');el.className='slot';el.dataset.name=n;
-      el.innerHTML=`<div class="slotHead"><span class="idx">${k+1}</span><span class="sname">${n}</span><span class="swatches slotsw" title="Casata dello studente">${swatchHtml()}</span><label class="absent"><input type="checkbox"${abs.has(n)?' checked':''}> Assente</label><button type="button" class="btn ghost mini addPhoto">Aggiungi foto</button></div><div class="slotBody"><div class="slotEmpty">Nessuna foto</div></div>`;
+      el.innerHTML=`<div class="slotHead"><span class="idx" title="Numero di registro">${regNum(cls,k)}</span><span class="sname">${n}</span><span class="swatches slotsw" title="Casata dello studente">${swatchHtml()}</span><label class="absent"><input type="checkbox"${abs.has(n)?' checked':''}> Assente</label><button type="button" class="btn ghost mini addPhoto">Aggiungi foto</button></div><div class="slotBody"><div class="slotEmpty">Nessuna foto</div></div>`;
       el.querySelector('.absent input').addEventListener('change',e=>{const on=e.target.checked;if(on)abs.add(n);else abs.delete(n);shiftForAbsence(cls,k,on);refreshNames();});
       el.querySelector('.addPhoto').addEventListener('click',()=>{slotTarget=n;$('#slotFile').click();});
       el.querySelector('.slotsw').addEventListener('click',e=>{const b=e.target.closest('.sw');if(!b)return;setHouse(n,b.dataset.color);placeItems();scheduleSave();});
@@ -1159,7 +1160,7 @@ function placeItems(){
 $('#assignSeqBtn').addEventListener('click',()=>{const cls=currentClass();if(!cls)return;openAbsentDialog(cls);});
 function openAbsentDialog(cls){
   const dlg=$('#absentDlg'),list=$('#absentList'),abs=absentSet();
-  list.innerHTML=cls.students.map((n,i)=>`<label><input type="checkbox" value="${i}"${abs.has(n)?' checked':''}> <span>${i+1}. ${n}</span></label>`).join('');
+  list.innerHTML=cls.students.map((n,i)=>`<label><input type="checkbox" value="${i}"${abs.has(n)?' checked':''}> <span>${regNum(cls,i)}. ${n}</span></label>`).join('');
   const upd=()=>{const a=list.querySelectorAll('input:checked').length,present=cls.students.length-a,ph=items.length;
     $('#absentSummary').innerHTML=`<b>${ph}</b> foto · <b>${present}</b> studenti presenti su ${cls.students.length}`+
       (ph===present?' · <span class="okmsg">i numeri combaciano</span>':` · <span class="warnmsg">${ph>present?'più foto che presenti: le ultime resteranno non assegnate':'meno foto che presenti: gli ultimi resteranno senza foto'}</span>`);};
@@ -1476,9 +1477,10 @@ function drawNoPhoto(pdf,cx,cy,r){ // pittogramma del cartello: cerchio rosso ba
 async function buildGalleryPdf(){
   const cls=currentClass();if(!cls)return null;
   const byName=new Map();for(const it of items)if(it.student&&it.status==='done'&&it.result&&!byName.has(it.student))byName.set(it.student,it);
-  const entries=cls.students.filter(n=>byName.has(n)).map(n=>({name:n,it:byName.get(n)})).sort((a,b)=>natural.compare(a.name,b.name));
+  // tutti gli studenti nell'ordine dell'elenco (alfabetico del registro) con il numero di registro; chi non ha la foto ha un riquadro vuoto
+  const entries=cls.students.map((n,i)=>({num:regNum(cls,i),name:n,it:byName.get(n)||null}));
   const missing=cls.students.filter(n=>!byName.has(n));
-  if(!entries.length)throw new Error('nessuna foto assegnata a uno studente di questa classe');
+  if(missing.length===cls.students.length)throw new Error('nessuna foto assegnata a uno studente di questa classe');
   const jsPDF=await loadJsPDF();
   const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a3'});
   /* Geometria fissa (A3 orizzontale 420×297 mm), uguale per tutte le classi, un solo foglio:
@@ -1498,12 +1500,21 @@ async function buildGalleryPdf(){
   pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.text('sacrafamiglia.education',M,18.5);
   pdf.setFont('helvetica','bold');pdf.setFontSize(19);pdf.text(`Classe ${cls.label}`,W/2,12.5,{align:'center'});
   pdf.setFont('helvetica','normal');pdf.setFontSize(10.5);pdf.text(`Scuola Sacra Famiglia · Orzinuovi (BS) · a.s. ${schoolYear()}`,W/2,18.5,{align:'center'});
-  pdf.setFontSize(9);pdf.text(`${n} student${n===1?'e':'i'} · foto ${s}×${s} mm`,W-M,18.5,{align:'right'});
+  pdf.setFontSize(9);pdf.text(`${n} student${n===1?'e':'i'} · ${n-missing.length} con foto · foto ${s}×${s} mm`,W-M,18.5,{align:'right'});
   for(let i=0;i<n;i++){const e=entries[i],c=i%cols,r=Math.floor(i/cols),x=x0+c*(s+gap),y=y0+r*(s+nameH+gap);
-    pdf.addImage(await resultJpeg(e.it,Math.round(s*24)),'JPEG',x,y,s,s); // 24 px/mm ≈ 600 dpi a 47 mm, entro il lato del ritaglio (≤ 1000-1200 px)
-    pdf.setDrawColor(217,226,220);pdf.setLineWidth(0.3);pdf.roundedRect(x,y,s,s,s*PDF_RADIUS,s*PDF_RADIUS);
-    pdf.setTextColor(...INK);pdf.setFont('helvetica','bold');pdf.setFontSize(s>=44?10.5:9);
-    pdf.text(pdf.splitTextToSize(e.name,s)[0],x+s/2,y+s+5.4,{align:'center'});}
+    if(e.it){
+      pdf.addImage(await resultJpeg(e.it,Math.round(s*24)),'JPEG',x,y,s,s); // 24 px/mm ≈ 600 dpi a 47 mm, entro il lato del ritaglio (≤ 1000-1200 px)
+      pdf.setDrawColor(217,226,220);pdf.setLineWidth(0.3);pdf.roundedRect(x,y,s,s,s*PDF_RADIUS,s*PDF_RADIUS);
+    }else{ // segnaposto vuoto per l'assente: riquadro chiaro tratteggiato
+      pdf.setFillColor(243,245,244);pdf.setDrawColor(190,198,194);pdf.setLineWidth(0.4);pdf.setLineDashPattern([1.5,1.5],0);
+      pdf.roundedRect(x,y,s,s,s*PDF_RADIUS,s*PDF_RADIUS,'FD');pdf.setLineDashPattern([],0);
+      pdf.setTextColor(...GREY);pdf.setFont('helvetica','normal');pdf.setFontSize(8);pdf.text('foto non disponibile',x+s/2,y+s/2+1.2,{align:'center'});
+    }
+    pdf.setTextColor(...(e.it?INK:GREY));pdf.setFont('helvetica','bold');pdf.setFontSize(s>=44?10:8.5);
+    let lines=pdf.splitTextToSize(`${e.num}. ${e.name}`,s);
+    if(lines.length>1){pdf.setFontSize(7.8);lines=pdf.splitTextToSize(`${e.num}. ${e.name}`,s).slice(0,2);} // nomi lunghi: corpo minore, fino a due righe
+    if(lines.length>1){pdf.text(lines[0],x+s/2,y+s+4.1,{align:'center'});pdf.text(lines[1],x+s/2,y+s+7.3,{align:'center'});}
+    else pdf.text(lines[0],x+s/2,y+s+5.4,{align:'center'});}
   // fascia di divieto (dal cartello "Vietato fotografare e filmare")
   const fy=H-M-footH;
   pdf.setFillColor(243,244,246);pdf.rect(M,fy,W-2*M,footH,'F');pdf.setFillColor(...RED);pdf.rect(M,fy,2,footH,'F');
@@ -1512,7 +1523,7 @@ async function buildGalleryPdf(){
   pdf.setTextColor(...INK);pdf.setFont('helvetica','normal');pdf.setFontSize(9);
   pdf.text('Il volto di ogni bambino appartiene a lui e alla sua famiglia. Questa galleria è esposta nei locali della scuola ed è protetta: non fotografarla, non filmarla e non condividerla con alcun dispositivo.',M+24,fy+12,{maxWidth:W-2*M-30});
   pdf.setTextColor(...GREY);pdf.setFontSize(7.5);pdf.text(`Nel rispetto del Regolamento d'Istituto e del Regolamento UE 2016/679 sulla protezione dei dati personali. Generato il ${new Date().toLocaleDateString('it-IT')}.`,M+24,fy+17.5);
-  return {blob:pdf.output('blob'),count:n,missing,pages:1,side:s};
+  return {blob:pdf.output('blob'),count:n-missing.length,missing,pages:1,side:s};
 }
 function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),10000);}
 function updatePdfBtn(){$('#pdfBtn').disabled=!(currentClass()&&items.some(it=>it.student&&it.status==='done'));}
@@ -1522,7 +1533,7 @@ $('#pdfBtn').addEventListener('click',async()=>{
     const file=new File([r.blob],name,{type:'application/pdf'});let shared=false;
     if(CAN_SHARE&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});shared=true;}catch(e){if(e&&e.name==='AbortError')shared=true;}}
     if(!shared)downloadBlob(r.blob,name);
-    els.progText.textContent=`PDF creato: ${r.count} foto da ${r.side}×${r.side} mm su un foglio A3`+(r.missing.length?` · senza foto: ${r.missing.join(', ')}`:'');
+    els.progText.textContent=`PDF creato: ${r.count} foto da ${r.side}×${r.side} mm su un foglio A3, in ordine di registro`+(r.missing.length?` · segnaposto vuoto per: ${r.missing.join(', ')}`:'');
   }catch(e){els.progText.textContent='PDF non creato: '+errText(e);}
   finally{updatePdfBtn();}
 });
