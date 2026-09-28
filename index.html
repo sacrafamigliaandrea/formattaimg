@@ -1053,11 +1053,12 @@ async function loadListFile(file){
   const isX=/\.xlsx$/i.test(file.name)||/spreadsheetml/.test(file.type);
   const classes=isX?await parseXlsx(await file.arrayBuffer()):parseCsv(await file.text());
   if(!classes.length)throw new Error('nessuna classe riconosciuta nel file');
-  elenco={source:file.name,classes};
+  elenco={source:file.name,classes};sortElenco(); // salvato già in ordine alfabetico
   try{localStorage.setItem(LS_LIST,JSON.stringify(elenco));}catch(_){}
   applyElenco();
 }
 function applyElenco(){
+  sortElenco();
   const sel=$('#classe'),info=$('#listInfo');sel.innerHTML='';
   if(!elenco){sel.disabled=true;sel.innerHTML='<option value="">Carica prima l\'elenco studenti</option>';info.textContent='Nessun elenco caricato: i file useranno il nome originale.';$('#clearListBtn').hidden=true;}
   else{sel.disabled=false;sel.innerHTML='<option value="">Scegli la classe</option>'+elenco.classes.map((c,i)=>`<option value="${i}">${c.label} (${c.students.length})</option>`).join('');
@@ -1068,7 +1069,11 @@ function applyElenco(){
   renderRoster();
 }
 const currentClass=()=>elenco&&elenco.classes[$('#classe').value]||null;
-const regNum=(cls,i)=>(cls.numbers&&cls.numbers[i])||i+1; // numero di registro (colonna "n." dell'elenco), altrimenti posizione
+const regNum=(cls,i)=>i+1; // numero di registro = posizione nell'ordine alfabetico (l'ordine del foglio non fa fede)
+/* ordine alfabetico degli studenti per ogni classe (collazione italiana), applicato a ogni caricamento/ripresa
+   dell'elenco: segnaposto, abbinamento in blocco, finestra degli assenti e PDF usano tutti questo ordine */
+const nameCollator=new Intl.Collator('it',{sensitivity:'base',ignorePunctuation:true});
+function sortElenco(){if(!elenco)return;for(const c of elenco.classes){c.students.sort((a,b)=>nameCollator.compare(a,b));delete c.numbers;}}
 function fillStudentSelect(it){
   const s=it.q.student,cls=currentClass(),free=it.q.free;
   if(!cls){ // nessuna classe: campo libero, il nome scritto vale per il file
